@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Newsletter - CareerPath AI</title>
+    <link rel="stylesheet" th:href="@{/css/app.css}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<div th:replace="~{fragments/navbar :: navbar}"></div>
+
+<main class="app-container fade-in">
+
+    <div class="page-header" style="display:flex; justify-content:space-between; align-items:flex-end; flex-wrap:wrap; gap:1rem;">
+        <div>
+            <h1>📧 Suscriptores del Newsletter</h1>
+            <p><span th:text="${subscribers.size()}">0</span> personas suscritas</p>
+        </div>
+        <a th:href="@{/admin/dashboard}" class="btn-secondary">← Volver al dashboard</a>
+    </div>
+
+    <div th:if="${subscribers.isEmpty()}" class="empty-state">
+        <div class="empty-state-icon">📭</div>
+        <p>No hay suscriptores todavía.</p>
+    </div>
+
+    <div th:unless="${subscribers.isEmpty()}" class="table-card">
+        <table class="table">
+            <thead>
+            <tr>
+                <th>#</th>
+                <th>Correo</th>
+                <th>Fecha de suscripción</th>
+                <th>Estado</th>
+                <th style="text-align:right;">Acciones</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="s : ${subscribers}">
+                <td th:text="${s.id}">-</td>
+                <td style="font-weight:600;" th:text="${s.email}">-</td>
+                <td th:text="${#temporals.format(s.subscribedAt, 'dd/MM/yyyy HH:mm')}">-</td>
+                <td>
+                    <span class="badge"
+                          th:classappend="${s.active ? 'badge-green' : 'badge-gray'}"
+                          th:text="${s.active ? 'Activo' : 'Inactivo'}">Activo</span>
+                </td>
+                <td style="text-align:right;">
+                    <form th:action="@{/admin/newsletter/delete/{id}(id=${s.id})}" method="post"
+                          style="display:inline"
+                          onsubmit="return confirm('¿Eliminar suscriptor?');">
+                        <button class="btn-danger">Eliminar</button>
+                    </form>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+</main>
+
+</body>
+</html>

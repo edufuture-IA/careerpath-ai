@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Editar Usuario - CareerPath AI</title>
+    <link rel="stylesheet" th:href="@{/css/app.css}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<div th:replace="~{fragments/navbar :: navbar}"></div>
+
+<main class="app-container fade-in" style="max-width:700px;">
+
+    <div class="page-header">
+        <a th:href="@{/admin/users}" class="btn-ghost" style="padding-left:0;">← Volver a usuarios</a>
+        <h1>✏️ Editar Usuario</h1>
+        <p>Modifica cualquier campo del usuario</p>
+    </div>
+
+    <div th:if="${error}" class="alert alert-error" th:text="${error}"></div>
+
+    <div class="card">
+        <form th:action="@{/admin/users/edit/{id}(id=${user.id})}" method="post">
+
+            <div class="form-group">
+                <label for="fullName">Nombre completo</label>
+                <input type="text" id="fullName" name="fullName"
+                       th:value="${user.fullName}" class="form-control" required>
+            </div>
+
+            <div class="form-group">
+                <label for="username">Correo electrónico</label>
+                <input type="email" id="username" name="username"
+                       th:value="${user.username}" class="form-control" required>
+            </div>
+
+            <div class="form-group">
+                <label for="role">Rol</label>
+                <select id="role" name="role" class="form-control" required>
+                    <option th:each="r : ${roles}"
+                            th:value="${r}"
+                            th:text="${r}"
+                            th:selected="${r == user.role}">-</option>
+                </select>
+            </div>
+
+            <fieldset style="border:1.5px solid #e2e8f0; border-radius:12px; padding:1rem 1.5rem; margin:1.5rem 0; background:#fafaff;">
+                <legend style="font-weight:700; padding:0 .6rem; color:#4f46e5;">🔒 Cambiar contraseña (opcional)</legend>
+                <div class="form-group">
+                    <label for="newPassword">Nueva contraseña</label>
+                    <input type="password" id="newPassword" name="newPassword"
+                           class="form-control" placeholder="Dejar en blanco para no cambiar"
+                           minlength="6">
+                </div>
+            </fieldset>
+
+            <div style="display:flex; gap:1rem;">
+                <button type="submit" class="btn-primary">💾 Guardar Cambios</button>
+                <a th:href="@{/admin/users}" class="btn-secondary">Cancelar</a>
+            </div>
+        </form>
+    </div>
+
+</main>
+
+</body>
+</html>

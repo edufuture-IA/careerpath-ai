@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nueva Institución - CareerPath AI</title>
+    <link rel="stylesheet" th:href="@{/css/app.css}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<div th:replace="~{fragments/navbar :: navbar}"></div>
+
+<main class="app-container fade-in" style="max-width:700px;">
+
+    <div class="page-header">
+        <a th:href="@{/admin/institutions}" class="btn-ghost" style="padding-left:0;">← Volver</a>
+        <h1>➕ Nueva Institución</h1>
+        <p>Crea un colegio directamente desde el panel admin</p>
+    </div>
+
+    <div th:if="${error}" class="alert alert-error" th:text="${error}"></div>
+
+    <div class="card">
+        <form th:action="@{/admin/institutions}" th:object="${institutionForm}" method="post">
+
+            <fieldset style="border:1.5px solid #e2e8f0; border-radius:12px; padding:1rem 1.5rem; margin-bottom:1.5rem;">
+                <legend style="font-weight:700; padding:0 .6rem; color:#4f46e5;">🏫 Datos de la Institución</legend>
+                <div class="form-group">
+                    <label>Nombre</label>
+                    <input type="text" th:field="*{name}" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label>Correo de contacto</label>
+                    <input type="email" th:field="*{contactEmail}" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label>Dirección</label>
+                    <input type="text" th:field="*{address}" class="form-control">
+                </div>
+                <div class="form-group">
+                    <label>Teléfono</label>
+                    <input type="text" th:field="*{phone}" class="form-control">
+                </div>
+            </fieldset>
+
+            <fieldset style="border:1.5px solid #e2e8f0; border-radius:12px; padding:1rem 1.5rem; margin-bottom:1.5rem;">
+                <legend style="font-weight:700; padding:0 .6rem; color:#4f46e5;">👤 Admin del colegio</legend>
+                <div class="form-group">
+                    <label>Nombre completo del administrador</label>
+                    <input type="text" th:field="*{adminFullName}" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label>Contraseña (mín. 6 caracteres)</label>
+                    <input type="password" th:field="*{adminPassword}" class="form-control" required minlength="6">
+                </div>
+                <p style="font-size:.85rem; color:#64748b; margin-top:.5rem;">
+                    💡 El admin del colegio usará el <strong>correo de contacto</strong> como usuario.
+                </p>
+            </fieldset>
+
+            <button type="submit" class="btn-primary">💾 Crear Institución</button>
+            <a th:href="@{/admin/institutions}" class="btn-secondary">Cancelar</a>
+        </form>
+    </div>
+
+</main>
+
+</body>
+</html>

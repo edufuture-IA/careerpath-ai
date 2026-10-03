@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel Administrador - CareerPath AI</title>
+    <link rel="stylesheet" th:href="@{/css/app.css}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<div th:replace="~{fragments/navbar :: navbar}"></div>
+
+<main class="app-container fade-in">
+
+    <div class="page-header">
+        <h1>🛠️ Panel de Administración</h1>
+        <p>Vista general de la plataforma</p>
+    </div>
+
+    <!-- Métricas -->
+    <div class="metrics-grid">
+        <div class="metric-card">
+            <div class="metric-icon">👥</div>
+            <div class="metric-value" th:text="${totalStudents}">0</div>
+            <div class="metric-label">Estudiantes</div>
+        </div>
+        <div class="metric-card">
+            <div class="metric-icon">👨‍🏫</div>
+            <div class="metric-value" th:text="${totalTeachers}">0</div>
+            <div class="metric-label">Docentes</div>
+        </div>
+        <div class="metric-card">
+            <div class="metric-icon">🎓</div>
+            <div class="metric-value" th:text="${totalCareers}">0</div>
+            <div class="metric-label">Carreras</div>
+        </div>
+        <div class="metric-card">
+            <div class="metric-icon">📋</div>
+            <div class="metric-value" th:text="${totalTests}">0</div>
+            <div class="metric-label">Tests Realizados</div>
+        </div>
+        <div class="metric-card">
+            <div class="metric-icon">❓</div>
+            <div class="metric-value" th:text="${totalQuestions}">0</div>
+            <div class="metric-label">Preguntas</div>
+        </div>
+        <div class="metric-card">
+            <div class="metric-icon">🏫</div>
+            <div class="metric-value" th:text="${totalInstitutions}">0</div>
+            <div class="metric-label">Colegios</div>
+        </div>
+        <div class="metric-card">
+            <div class="metric-icon">📩</div>
+            <div class="metric-value" th:text="${contactMessages}">0</div>
+            <div class="metric-label">Mensajes B2B</div>
+        </div>
+        <div class="metric-card">
+            <div class="metric-icon">📧</div>
+            <div class="metric-value" th:text="${newsletterCount}">0</div>
+            <div class="metric-label">Suscriptores</div>
+        </div>
+    </div>
+
+    <!-- Acciones rápidas -->
+    <div class="section-title">
+        <h2>⚡ Acciones rápidas</h2>
+    </div>
+
+    <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); gap:1rem;">
+        <a th:href="@{/admin/users}" class="card" style="text-decoration:none; cursor:pointer;">
+            <div style="font-size:1.5rem; margin-bottom:.5rem;">👥</div>
+            <h3 style="font-size:1rem; color:#0f172a; margin-bottom:.3rem;">Usuarios</h3>
+            <p style="font-size:.85rem; color:#64748b;">Editar y gestionar cuentas</p>
+        </a>
+
+        <a th:href="@{/admin/questions}" class="card" style="text-decoration:none; cursor:pointer;">
+            <div style="font-size:1.5rem; margin-bottom:.5rem;">❓</div>
+            <h3 style="font-size:1rem; color:#0f172a; margin-bottom:.3rem;">Preguntas</h3>
+            <p style="font-size:.85rem; color:#64748b;">Editar el test vocacional</p>
+        </a>
+
+        <a th:href="@{/admin/institutions}" class="card" style="text-decoration:none; cursor:pointer;">
+            <div style="font-size:1.5rem; margin-bottom:.5rem;">🏫</div>
+            <h3 style="font-size:1rem; color:#0f172a; margin-bottom:.3rem;">Colegios</h3>
+            <p style="font-size:.85rem; color:#64748b;">Crear y editar instituciones</p>
+        </a>
+
+        <a th:href="@{/admin/messages}" class="card" style="text-decoration:none; cursor:pointer;">
+            <div style="font-size:1.5rem; margin-bottom:.5rem;">📩</div>
+            <h3 style="font-size:1rem; color:#0f172a; margin-bottom:.3rem;">Mensajes B2B</h3>
+            <p style="font-size:.85rem; color:#64748b;">
+                <span th:text="${contactMessages}">0</span> mensajes recibidos
+            </p>
+        </a>
+
+        <a th:href="@{/admin/newsletter}" class="card" style="text-decoration:none; cursor:pointer;">
+            <div style="font-size:1.5rem; margin-bottom:.5rem;">📧</div>
+            <h3 style="font-size:1rem; color:#0f172a; margin-bottom:.3rem;">Newsletter</h3>
+            <p style="font-size:.85rem; color:#64748b;">
+                <span th:text="${newsletterCount}">0</span> suscriptores
+            </p>
+        </a>
+
+        <a th:href="@{/admin/logs}" class="card" style="text-decoration:none; cursor:pointer;">
+            <div style="font-size:1.5rem; margin-bottom:.5rem;">📝</div>
+            <h3 style="font-size:1rem; color:#0f172a; margin-bottom:.3rem;">Logs</h3>
+            <p style="font-size:.85rem; color:#64748b;">Actividad del sistema</p>
+        </a>
+
+        <a th:href="@{/careers}" class="card" style="text-decoration:none; cursor:pointer;">
+            <div style="font-size:1.5rem; margin-bottom:.5rem;">🎓</div>
+            <h3 style="font-size:1rem; color:#0f172a; margin-bottom:.3rem;">Carreras</h3>
+            <p style="font-size:.85rem; color:#64748b;">CRUD de carreras</p>
+        </a>
+
+        <a th:href="@{/universities}" class="card" style="text-decoration:none; cursor:pointer;">
+            <div style="font-size:1.5rem; margin-bottom:.5rem;">🏛️</div>
+            <h3 style="font-size:1rem; color:#0f172a; margin-bottom:.3rem;">Universidades</h3>
+            <p style="font-size:.85rem; color:#64748b;">CRUD de universidades</p>
+        </a>
+    </div>
+
+</main>
+
+</body>
+</html>

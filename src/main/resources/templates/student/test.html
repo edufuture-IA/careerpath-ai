@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test vocacional — CareerPath AI</title>
+    <link rel="stylesheet" th:href="@{/css/app.css}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<div th:replace="~{fragments/navbar :: navbar}"></div>
+
+<main class="app-container fade-in" style="max-width:800px;">
+
+    <div class="page-header">
+        <h1>Test Vocacional</h1>
+        <p>Responde con sinceridad: 1 = nada, 5 = mucho</p>
+    </div>
+
+    <div class="progress-bar">
+        <div class="progress-fill" id="progressFill" style="width:0%"></div>
+    </div>
+
+    <form th:action="@{/student/test}" method="post" id="testForm">
+
+        <div th:each="q, iter : ${questions}" class="question-card">
+            <div class="question-header">
+                <div class="question-number" th:text="${iter.count}">1</div>
+                <div class="question-text" th:text="${q.text}"></div>
+            </div>
+
+            <div class="likert">
+                <label th:each="n : ${#numbers.sequence(1,5)}">
+                    <input type="radio"
+                           th:name="'answer_' + ${q.id}"
+                           th:value="${n}"
+                           required>
+                    <span class="circle"></span>
+                    <span class="score-label" th:text="${n}"></span>
+                </label>
+            </div>
+        </div>
+
+        <div class="test-submit-wrapper">
+            <button type="submit" class="btn-primary" style="padding:1rem 3rem; font-size:1rem;">
+                ✓ Enviar respuestas
+            </button>
+        </div>
+    </form>
+
+</main>
+
+<script>
+    const form = document.getElementById('testForm');
+    const fill = document.getElementById('progressFill');
+    const radios = form.querySelectorAll('input[type=radio]');
+
+    function updateProgress() {
+        const total = new Set();
+        const answered = new Set();
+        radios.forEach(r => {
+            total.add(r.name);
+            if (r.checked) answered.add(r.name);
+        });
+        const pct = (answered.size / total.size) * 100;
+        fill.style.width = pct + '%';
+    }
+
+    radios.forEach(r => r.addEventListener('change', updateProgress));
+</script>
+
+</body>
+</html>

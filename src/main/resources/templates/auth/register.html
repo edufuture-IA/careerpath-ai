@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crear cuenta — CareerPath AI</title>
+    <link rel="stylesheet" th:href="@{/css/app.css}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<div class="auth-page">
+    <div class="auth-left">
+        <div class="auth-brand">
+            <span class="logo-icon">🎓</span>
+            <span>CareerPath AI</span>
+        </div>
+        <div class="auth-hero">
+            <h1>Crea tu cuenta gratis</h1>
+            <p>Únete a miles de estudiantes que ya están descubriendo su verdadera vocación.</p>
+        </div>
+        <div class="auth-features">
+            <div class="auth-feature">
+                <span class="auth-feature-icon">✅</span>
+                <span>Test vocacional 100% gratuito</span>
+            </div>
+            <div class="auth-feature">
+                <span class="auth-feature-icon">⚡</span>
+                <span>Resultados en menos de 15 minutos</span>
+            </div>
+            <div class="auth-feature">
+                <span class="auth-feature-icon">🔒</span>
+                <span>Tus datos siempre seguros</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="auth-right">
+        <div class="auth-form-wrapper fade-in">
+            <h2>Crear cuenta</h2>
+            <p class="subtitle">Solo te tomará menos de un minuto</p>
+
+            <div th:if="${error}" class="alert alert-error" th:text="${error}"></div>
+
+            <form th:action="@{/register}" th:object="${registerForm}" method="post">
+
+                <div class="form-group">
+                    <label for="fullName">Nombre completo</label>
+                    <input type="text" id="fullName" th:field="*{fullName}"
+                           class="form-control" placeholder="Ej: María González" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="username">Correo electrónico</label>
+                    <input type="email" id="username" th:field="*{username}"
+                           class="form-control" placeholder="tu@correo.com" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="password">Contraseña</label>
+                    <input type="password" id="password" th:field="*{password}"
+                           class="form-control" placeholder="Mínimo 6 caracteres"
+                           required minlength="6">
+                </div>
+
+                <div class="form-group">
+                    <label for="role">Tipo de usuario</label>
+                    <select id="role" th:field="*{role}" class="form-control" required>
+                        <option value="">Selecciona tu perfil…</option>
+                        <option th:each="r : ${roles}" th:value="${r}" th:text="${r}"></option>
+                    </select>
+                </div>
+
+                <!-- 🆕 Código de invitación (opcional) -->
+                <div class="form-group">
+                    <label for="invitationCode">
+                        Código de invitación <span style="color:#94a3b8; font-weight:400;">(opcional)</span>
+                    </label>
+                    <input type="text" id="invitationCode" th:field="*{invitationCode}"
+                           class="form-control" placeholder="Ej: AB3K9X2P"
+                           style="text-transform: uppercase;" maxlength="12">
+                    <p style="font-size:.8rem; color:#64748b; margin-top:.4rem;">
+                        💡 Si tu colegio te dio un código, ingrésalo aquí para vincularte.
+                    </p>
+                </div>
+
+                <button type="submit" class="btn-primary btn-block">
+                    Crear mi cuenta
+                </button>
+            </form>
+
+            <p class="auth-footer">
+                ¿Ya tienes cuenta? <a th:href="@{/login}">Inicia sesión</a>
+            </p>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>

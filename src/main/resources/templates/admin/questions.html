@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de Preguntas - CareerPath AI</title>
+    <link rel="stylesheet" th:href="@{/css/app.css}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<div th:replace="~{fragments/navbar :: navbar}"></div>
+
+<main class="app-container fade-in">
+
+    <div class="page-header">
+        <h1>❓ Gestión de Preguntas</h1>
+        <p>Administra las preguntas del test vocacional</p>
+    </div>
+
+    <div th:if="${param.created}" class="alert alert-success">✅ Pregunta creada correctamente.</div>
+    <div th:if="${param.updated}" class="alert alert-success">✏️ Pregunta actualizada correctamente.</div>
+    <div th:if="${param.deleted}" class="alert alert-success">🗑️ Pregunta eliminada correctamente.</div>
+
+    <!-- Formulario para nueva pregunta -->
+    <div class="card" style="margin-bottom:2rem;">
+        <h2 style="font-size:1.1rem; margin-bottom:1rem; color:#0f172a;">➕ Nueva Pregunta</h2>
+        <form th:action="@{/admin/questions}" th:object="${newQuestion}" method="post">
+            <div class="form-group">
+                <label>Texto de la pregunta</label>
+                <input type="text" th:field="*{text}" class="form-control" required maxlength="500">
+            </div>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem;">
+                <div class="form-group">
+                    <label>Área evaluada</label>
+                    <select th:field="*{area}" class="form-control" required>
+                        <option value="Ingeniería">Ingeniería</option>
+                        <option value="Salud">Salud</option>
+                        <option value="Negocios">Negocios</option>
+                        <option value="Arte">Arte</option>
+                        <option value="Legal">Legal</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Orden</label>
+                    <input type="number" th:field="*{orderIndex}" class="form-control" required>
+                </div>
+            </div>
+            <button type="submit" class="btn-primary">Agregar Pregunta</button>
+        </form>
+    </div>
+
+    <!-- Listado de preguntas -->
+    <div class="section-title">
+        <h2>Preguntas existentes (<span th:text="${questions.size()}">0</span>)</h2>
+    </div>
+
+    <div th:if="${questions.isEmpty()}" class="empty-state">
+        <p>No hay preguntas registradas.</p>
+    </div>
+
+    <div th:unless="${questions.isEmpty()}" class="table-card">
+        <table class="table">
+            <thead>
+            <tr>
+                <th>Orden</th>
+                <th>Pregunta</th>
+                <th>Área</th>
+                <th style="text-align:right;">Acciones</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="q : ${questions}">
+                <td style="font-weight:600;" th:text="${q.orderIndex}">-</td>
+                <td th:text="${q.text}">-</td>
+                <td><span class="badge badge-blue" th:text="${q.area}">-</span></td>
+                <td style="text-align:right;">
+                    <div class="cell-actions" style="justify-content:flex-end;">
+                        <a th:href="@{/admin/questions/edit/{id}(id=${q.id})}"
+                           class="btn-secondary" style="padding:.4rem .8rem; font-size:.85rem;">
+                            ✏️ Editar
+                        </a>
+                        <a th:href="@{/admin/questions/delete/{id}(id=${q.id})}"
+                           class="btn-danger"
+                           onclick="return confirm('¿Eliminar pregunta?');">Eliminar</a>
+                    </div>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+</main>
+
+</body>
+</html>
