@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Formulario de carrera — CareerPath AI</title>
+    <link rel="stylesheet" th:href="@{/css/app.css}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<div th:replace="~{fragments/navbar :: navbar}"></div>
+
+<main class="app-container fade-in" style="max-width:700px;">
+
+    <div class="page-header">
+        <a th:href="@{/careers}" class="btn-ghost" style="padding-left:0;">← Volver al catálogo</a>
+        <h1 th:text="${career.id} == null ? 'Nueva carrera' : 'Editar carrera'"></h1>
+        <p>Completa la información para el catálogo</p>
+    </div>
+
+    <div class="card">
+        <form th:action="${career.id} == null
+                          ? @{/careers}
+                          : @{/careers/update/{id}(id=${career.id})}"
+              th:object="${career}" method="post">
+
+            <div class="form-group">
+                <label for="name">Nombre de la carrera</label>
+                <input type="text" id="name" th:field="*{name}"
+                       class="form-control" placeholder="Ej: Ingeniería de Sistemas" required>
+                <span th:if="${#fields.hasErrors('name')}"
+                      th:errors="*{name}"
+                      style="color:#dc2626; font-size:.8rem;"></span>
+            </div>
+
+            <div class="form-group">
+                <label for="description">Descripción</label>
+                <textarea id="description" th:field="*{description}"
+                          class="form-control" rows="3"
+                          placeholder="Describe brevemente la carrera"></textarea>
+            </div>
+
+            <div class="form-group">
+                <label for="area">Área</label>
+                <input type="text" id="area" th:field="*{area}"
+                       class="form-control" placeholder="Ej: Ingeniería, Salud, Negocios…">
+            </div>
+
+            <div class="form-group">
+                <label for="requiredSkills">Habilidades requeridas (separadas por coma)</label>
+                <input type="text" id="requiredSkills" th:field="*{requiredSkills}"
+                       class="form-control" placeholder="Ej: lógica,programación,matemática">
+            </div>
+
+            <div class="form-group">
+                <label for="demandIndex">Índice de demanda (0.0 a 1.0)</label>
+                <input type="number" id="demandIndex" th:field="*{demandIndex}"
+                       class="form-control" step="0.01" min="0" max="1"
+                       placeholder="Ej: 0.85">
+            </div>
+
+            <div style="display:flex; gap:1rem; margin-top:2rem;">
+                <button type="submit" class="btn-primary">💾 Guardar</button>
+                <a th:href="@{/careers}" class="btn-secondary">Cancelar</a>
+            </div>
+        </form>
+    </div>
+</main>
+
+</body>
+</html>

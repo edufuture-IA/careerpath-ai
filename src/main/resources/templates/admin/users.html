@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de Usuarios - CareerPath AI</title>
+    <link rel="stylesheet" th:href="@{/css/app.css}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<div th:replace="~{fragments/navbar :: navbar}"></div>
+
+<main class="app-container fade-in">
+
+    <div class="page-header">
+        <h1>👥 Gestión de Usuarios</h1>
+        <p>Administra estudiantes y docentes</p>
+    </div>
+
+    <div th:if="${param.updated}" class="alert alert-success">✅ Usuario actualizado correctamente.</div>
+    <div th:if="${param.deleted}" class="alert alert-success">🗑️ Usuario eliminado correctamente.</div>
+
+    <div class="section-title">
+        <h2>Estudiantes (<span th:text="${students.size()}">0</span>)</h2>
+    </div>
+
+    <div th:if="${students.isEmpty()}" class="empty-state">
+        <p>No hay estudiantes registrados.</p>
+    </div>
+
+    <div th:unless="${students.isEmpty()}" class="table-card">
+        <table class="table">
+            <thead>
+            <tr>
+                <th>ID</th><th>Nombre</th><th>Correo</th><th style="text-align:right;">Acciones</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="s : ${students}">
+                <td th:text="${s.id}">-</td>
+                <td style="font-weight:600;" th:text="${s.fullName}">-</td>
+                <td th:text="${s.username}">-</td>
+                <td style="text-align:right;">
+                    <a th:href="@{/admin/users/edit/{id}(id=${s.id})}"
+                       class="btn-secondary" style="padding:.4rem .8rem; font-size:.85rem;">
+                        ✏️ Editar
+                    </a>
+                    <form th:action="@{/admin/users/delete/{id}(id=${s.id})}"
+                          method="post" style="display:inline"
+                          onsubmit="return confirm('¿Eliminar usuario?');">
+                        <button class="btn-danger">Eliminar</button>
+                    </form>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="section-title">
+        <h2>Docentes (<span th:text="${teachers.size()}">0</span>)</h2>
+    </div>
+
+    <div th:if="${teachers.isEmpty()}" class="empty-state">
+        <p>No hay docentes registrados.</p>
+    </div>
+
+    <div th:unless="${teachers.isEmpty()}" class="table-card">
+        <table class="table">
+            <thead>
+            <tr><th>ID</th><th>Nombre</th><th>Correo</th><th style="text-align:right;">Acciones</th></tr>
+            </thead>
+            <tbody>
+            <tr th:each="t : ${teachers}">
+                <td th:text="${t.id}">-</td>
+                <td style="font-weight:600;" th:text="${t.fullName}">-</td>
+                <td th:text="${t.username}">-</td>
+                <td style="text-align:right;">
+                    <a th:href="@{/admin/users/edit/{id}(id=${t.id})}"
+                       class="btn-secondary" style="padding:.4rem .8rem; font-size:.85rem;">
+                        ✏️ Editar
+                    </a>
+                    <form th:action="@{/admin/users/delete/{id}(id=${t.id})}"
+                          method="post" style="display:inline"
+                          onsubmit="return confirm('¿Eliminar usuario?');">
+                        <button class="btn-danger">Eliminar</button>
+                    </form>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</main>
+
+</body>
+</html>

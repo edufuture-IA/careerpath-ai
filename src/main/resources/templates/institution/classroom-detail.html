@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="'Aula: ' + ${classroom.name}"></title>
+    <link rel="stylesheet" th:href="@{/css/app.css}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<div th:replace="~{fragments/navbar :: navbar}"></div>
+
+<main class="app-container fade-in">
+
+    <div th:if="${param.assigned}" class="alert alert-success">✅ Alumno asignado.</div>
+    <div th:if="${param.removed}" class="alert alert-success">➖ Alumno removido.</div>
+    <div th:if="${param.teacherAssigned}" class="alert alert-success">✅ Docente asignado.</div>
+    <div th:if="${param.teacherRemoved}" class="alert alert-success">➖ Docente removido.</div>
+
+    <div class="page-header">
+        <a th:href="@{/institution/dashboard}" class="btn-ghost" style="padding-left:0;">← Volver al panel</a>
+        <h1 th:text="'🎓 ' + ${classroom.name}"></h1>
+        <p th:text="${classroom.grade}">Grado</p>
+    </div>
+
+    <!-- ============== DOCENTES ============== -->
+    <div class="section-title">
+        <h2>👨‍🏫 Docentes del aula (<span th:text="${classroom.teachers.size()}">0</span>)</h2>
+    </div>
+
+    <div th:if="${classroom.teachers.isEmpty()}" class="empty-state" style="margin-bottom:1.5rem;">
+        <p>Esta aula no tiene docentes asignados.</p>
+    </div>
+
+    <div th:unless="${classroom.teachers.isEmpty()}" class="table-card" style="margin-bottom:1.5rem;">
+        <table class="table">
+            <thead>
+            <tr><th>Nombre</th><th>Correo</th><th style="text-align:right;">Acciones</th></tr>
+            </thead>
+            <tbody>
+            <tr th:each="t : ${classroom.teachers}">
+                <td style="font-weight:600;" th:text="${t.fullName}">-</td>
+                <td th:text="${t.username}">-</td>
+                <td style="text-align:right;">
+                    <a th:href="@{/institution/classrooms/{id}/remove-teacher/{tid}(id=${classroom.id}, tid=${t.id})}"
+                       class="btn-danger"
+                       onclick="return confirm('¿Remover docente?');">Remover</a>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div th:if="${availableTeachers.isEmpty()}" class="empty-state" style="margin-bottom:2rem;">
+        <p>Todos los docentes ya están asignados.</p>
+    </div>
+
+    <div th:unless="${availableTeachers.isEmpty()}" class="table-card" style="margin-bottom:2rem;">
+        <table class="table">
+            <thead>
+            <tr><th>Docentes disponibles</th><th>Correo</th><th style="text-align:right;">Acciones</th></tr>
+            </thead>
+            <tbody>
+            <tr th:each="t : ${availableTeachers}">
+                <td style="font-weight:600;" th:text="${t.fullName}">-</td>
+                <td th:text="${t.username}">-</td>
+                <td style="text-align:right;">
+                    <form th:action="@{/institution/classrooms/{id}/assign-teacher(id=${classroom.id})}"
+                          method="post" style="display:inline">
+                        <input type="hidden" name="teacherId" th:value="${t.id}">
+                        <button type="submit" class="btn-primary"
+                                style="padding:.4rem .9rem; font-size:.85rem;">
+                            ➕ Asignar
+                        </button>
+                    </form>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- ============== ALUMNOS ============== -->
+    <div class="section-title">
+        <h2>👥 Alumnos del aula (<span th:text="${classroom.students.size()}">0</span>)</h2>
+    </div>
+
+    <div th:if="${classroom.students.isEmpty()}" class="empty-state" style="margin-bottom:1.5rem;">
+        <p>Esta aula no tiene alumnos asignados.</p>
+    </div>
+
+    <div th:unless="${classroom.students.isEmpty()}" class="table-card" style="margin-bottom:1.5rem;">
+        <table class="table">
+            <thead>
+            <tr><th>Nombre</th><th>Correo</th><th style="text-align:right;">Acciones</th></tr>
+            </thead>
+            <tbody>
+            <tr th:each="s : ${classroom.students}">
+                <td style="font-weight:600;" th:text="${s.fullName}">-</td>
+                <td th:text="${s.username}">-</td>
+                <td style="text-align:right;">
+                    <a th:href="@{/institution/classrooms/{id}/remove/{sid}(id=${classroom.id}, sid=${s.id})}"
+                       class="btn-danger"
+                       onclick="return confirm('¿Remover alumno?');">Remover</a>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div th:if="${availableStudents.isEmpty()}" class="empty-state">
+        <p>Todos los alumnos ya están asignados a un aula.</p>
+    </div>
+
+    <div th:unless="${availableStudents.isEmpty()}" class="table-card">
+        <table class="table">
+            <thead>
+            <tr><th>Alumnos disponibles</th><th>Correo</th><th style="text-align:right;">Acciones</th></tr>
+            </thead>
+            <tbody>
+            <tr th:each="s : ${availableStudents}">
+                <td style="font-weight:600;" th:text="${s.fullName}">-</td>
+                <td th:text="${s.username}">-</td>
+                <td style="text-align:right;">
+                    <form th:action="@{/institution/classrooms/{id}/assign(id=${classroom.id})}"
+                          method="post" style="display:inline">
+                        <input type="hidden" name="studentId" th:value="${s.id}">
+                        <button type="submit" class="btn-primary"
+                                style="padding:.4rem .9rem; font-size:.85rem;">
+                            ➕ Asignar
+                        </button>
+                    </form>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+</main>
+
+</body>
+</html>

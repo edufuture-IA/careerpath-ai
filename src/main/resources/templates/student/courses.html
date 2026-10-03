@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cursos Sugeridos - CareerPath AI</title>
+    <link rel="stylesheet" th:href="@{/css/app.css}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<div th:replace="~{fragments/navbar :: navbar}"></div>
+
+<main class="app-container fade-in">
+
+    <div class="page-header">
+        <h1>📚 Cursos Recomendados</h1>
+        <p th:if="${topArea}">Basados en tu área predominante: <strong th:text="${topArea}">Ingeniería</strong></p>
+        <p th:unless="${topArea}">Explora cursos para potenciar tus habilidades</p>
+    </div>
+
+    <div th:if="${courses.isEmpty()}" class="empty-state">
+        <div class="empty-state-icon">📚</div>
+        <p>No hay cursos disponibles por ahora.</p>
+    </div>
+
+    <div th:unless="${courses.isEmpty()}" style="display:grid; grid-template-columns:repeat(auto-fill, minmax(300px, 1fr)); gap:1.5rem;">
+        <div th:each="course : ${courses}" class="card">
+            <h3 style="font-size:1.1rem; color:#0f172a; margin-bottom:.8rem;" th:text="${course.title}">Curso</h3>
+            <p style="font-size:.9rem; color:#475569;"><strong>Proveedor:</strong> <span th:text="${course.provider}">Coursera</span></p>
+            <p style="font-size:.9rem; color:#475569;"><strong>Área:</strong> <span th:text="${course.area}">Ingeniería</span></p>
+            <p style="font-size:.9rem; color:#475569;"><strong>Habilidad:</strong> <span th:text="${course.skill}">Python</span></p>
+            <p style="font-size:.9rem; color:#475569;"><strong>Duración:</strong> <span th:text="${course.durationHours}">40</span> horas</p>
+            <a th:href="${course.url}" target="_blank" class="btn-primary" style="margin-top:1rem; display:inline-flex;">Ir al Curso →</a>
+        </div>
+    </div>
+</main>
+
+</body>
+</html>

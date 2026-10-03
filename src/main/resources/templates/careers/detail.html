@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${career.name} + ' — CareerPath AI'"></title>
+    <link rel="stylesheet" th:href="@{/css/app.css}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<div th:replace="~{fragments/navbar :: navbar}"></div>
+
+<main class="app-container fade-in" style="max-width:800px;">
+
+    <div class="page-header">
+        <a th:href="@{/careers}" class="btn-ghost" style="padding-left:0;">← Volver al catálogo</a>
+    </div>
+
+    <div class="card">
+        <div style="display:flex; justify-content:space-between; align-items:start; margin-bottom:1.5rem; flex-wrap:wrap; gap:1rem;">
+            <div>
+                <h1 style="font-size:1.8rem; font-weight:800; color:#0f172a;" th:text="${career.name}"></h1>
+                <span class="badge badge-blue" style="margin-top:.5rem;" th:text="${career.area}"></span>
+            </div>
+            <span class="badge"
+                  th:classappend="${career.demandIndex >= 0.85 ? 'badge-green' : 'badge-orange'}"
+                  th:text="'Demanda ' + ${#numbers.formatDecimal(career.demandIndex, 1, 2)}"></span>
+        </div>
+
+        <div style="border-top:1px solid #f1f5f9; padding-top:1.5rem;">
+            <h3 style="font-size:.85rem; text-transform:uppercase; letter-spacing:.05em; color:#64748b; margin-bottom:.5rem;">Descripción</h3>
+            <p style="color:#334155; margin-bottom:1.5rem;" th:text="${career.description}"></p>
+
+            <h3 style="font-size:.85rem; text-transform:uppercase; letter-spacing:.05em; color:#64748b; margin-bottom:.5rem;">Habilidades requeridas</h3>
+            <div style="display:flex; gap:.5rem; flex-wrap:wrap;">
+                <span th:each="s : ${#strings.arraySplit(career.requiredSkills, ',')}"
+                      class="badge badge-purple" th:text="${#strings.trim(s)}"></span>
+            </div>
+        </div>
+    </div>
+
+    <!-- 🆕 Universidades que ofrecen esta carrera -->
+    <div class="section-title" style="margin-top:2rem;">
+        <h2>🎓 Universidades que ofrecen esta área</h2>
+    </div>
+
+    <div th:if="${universities.isEmpty()}" class="empty-state">
+        <p>Aún no hay universidades registradas con el área <strong th:text="${career.area}"></strong>.</p>
+    </div>
+
+    <div th:unless="${universities.isEmpty()}"
+         style="display:grid; grid-template-columns:repeat(auto-fill, minmax(280px, 1fr)); gap:1rem;">
+        <div th:each="u : ${universities}" class="card">
+            <h3 style="font-size:1rem; color:#0f172a; margin-bottom:.4rem;" th:text="${u.name}"></h3>
+            <p style="font-size:.85rem; color:#64748b; margin-bottom:.5rem;">
+                📍 <span th:text="${u.city}">Lima</span>
+            </p>
+            <a th:href="@{/universities/detail/{id}(id=${u.id})}"
+               class="btn-ghost" style="font-size:.85rem;">
+                Ver universidad →
+            </a>
+        </div>
+    </div>
+
+    <!-- 🆕 Cursos recomendados -->
+    <div class="section-title" style="margin-top:2rem;">
+        <h2>📚 Cursos recomendados para esta carrera</h2>
+    </div>
+
+    <div th:if="${courses.isEmpty()}" class="empty-state">
+        <p>No hay cursos específicos para esta área todavía.</p>
+    </div>
+
+    <div th:unless="${courses.isEmpty()}"
+         style="display:grid; grid-template-columns:repeat(auto-fill, minmax(280px, 1fr)); gap:1rem;">
+        <div th:each="c : ${courses}" class="card">
+            <h3 style="font-size:1rem; color:#0f172a; margin-bottom:.4rem;" th:text="${c.title}"></h3>
+            <p style="font-size:.85rem; color:#64748b;"><strong>Proveedor:</strong> <span th:text="${c.provider}"></span></p>
+            <p style="font-size:.85rem; color:#64748b;"><strong>Skill:</strong> <span th:text="${c.skill}"></span></p>
+            <p style="font-size:.85rem; color:#64748b; margin-bottom:.5rem;">
+                <strong>Duración:</strong> <span th:text="${c.durationHours}">40</span>h
+            </p>
+            <a th:href="${c.url}" target="_blank" class="btn-primary"
+               style="font-size:.85rem; padding:.5rem 1rem;">Ir al curso →</a>
+        </div>
+    </div>
+
+    <div style="display:flex; gap:1rem; margin-top:2rem; flex-wrap:wrap;">
+        <form th:action="@{/student/favorites/add/{id}(id=${career.id})}" method="post"
+              style="display:inline"
+              th:if="${#authorization.expression('hasRole(''ESTUDIANTE'')')}">
+            <button type="submit" class="btn-primary">⭐ Agregar a favoritos</button>
+        </form>
+
+        <a th:href="@{/careers/edit/{id}(id=${career.id})}" class="btn-primary"
+           th:if="${#authorization.expression('hasRole(''ADMIN'')')}">✏️ Editar</a>
+
+        <a th:href="@{/careers}" class="btn-secondary">Volver</a>
+    </div>
+
+</main>
+
+</body>
+</html>

@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Comparación - CareerPath AI</title>
+    <link rel="stylesheet" th:href="@{/css/app.css}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<div th:replace="~{fragments/navbar :: navbar}"></div>
+
+<main class="app-container fade-in">
+
+    <div class="page-header">
+        <h1>📊 Comparación de Carreras</h1>
+        <p>Análisis lado a lado de tus selecciones</p>
+    </div>
+
+    <div class="table-card" style="overflow-x:auto;">
+        <table class="table">
+            <thead>
+            <tr>
+                <th>Atributo</th>
+                <th th:each="c : ${careers}" th:text="${c.name}">Carrera</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr>
+                <td><strong>Área</strong></td>
+                <td th:each="c : ${careers}">
+                    <span class="badge badge-blue" th:text="${c.area}">-</span>
+                </td>
+            </tr>
+            <tr>
+                <td><strong>Descripción</strong></td>
+                <td th:each="c : ${careers}" th:text="${c.description}">-</td>
+            </tr>
+            <tr>
+                <td><strong>Habilidades</strong></td>
+                <td th:each="c : ${careers}" th:text="${c.requiredSkills}">-</td>
+            </tr>
+            <tr>
+                <td><strong>Índice de Demanda</strong></td>
+                <td th:each="c : ${careers}">
+                    <span class="badge badge-green"
+                          th:text="${#numbers.formatDecimal(c.demandIndex * 100, 1, 0)} + '%'">95%</span>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div style="margin-top:1.5rem;">
+        <a th:href="@{/careers/compare}" class="btn-secondary">← Comparar otras</a>
+    </div>
+</main>
+
+</body>
+</html>

@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Catálogo de carreras — CareerPath AI</title>
+    <link rel="stylesheet" th:href="@{/css/app.css}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<div th:replace="~{fragments/navbar :: navbar}"></div>
+
+<main class="app-container fade-in">
+
+    <div class="page-header" style="display:flex; justify-content:space-between; align-items:flex-end; flex-wrap:wrap; gap:1rem;">
+        <div>
+            <h1>Catálogo de carreras</h1>
+            <p>Explora las carreras disponibles</p>
+        </div>
+        <a th:href="@{/careers/new}" class="btn-primary"
+           th:if="${#authorization.expression('hasRole(''ADMIN'')')}">
+            + Nueva carrera
+        </a>
+    </div>
+
+    <!-- 🆕 Buscador -->
+    <div class="card" style="margin-bottom:1.5rem;">
+        <form method="get" th:action="@{/careers}"
+              style="display:flex; gap:1rem; flex-wrap:wrap; align-items:end;">
+            <div class="form-group" style="flex:1; min-width:200px; margin:0;">
+                <label for="search">🔍 Buscar carrera por nombre o área</label>
+                <input type="text" id="search" name="search" th:value="${searchTerm}"
+                       class="form-control" placeholder="Ej: Ingeniería, Salud, Derecho...">
+            </div>
+            <button type="submit" class="btn-primary">Buscar</button>
+            <a th:href="@{/careers}" class="btn-secondary">Limpiar</a>
+        </form>
+    </div>
+
+    <div th:if="${#lists.isEmpty(careers)}" class="empty-state">
+        <div class="empty-state-icon">📚</div>
+        <p th:if="${searchTerm}">
+            No se encontraron carreras con "<strong th:text="${searchTerm}"></strong>"
+        </p>
+        <p th:unless="${searchTerm}">No hay carreras registradas.</p>
+    </div>
+
+    <div th:unless="${#lists.isEmpty(careers)}" class="table-card">
+        <table class="table">
+            <thead>
+            <tr>
+                <th>#</th>
+                <th>Nombre</th>
+                <th>Área</th>
+                <th>Demanda</th>
+                <th style="text-align:right;">Acciones</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="c : ${careers}">
+                <td style="color:#94a3b8; font-weight:600;" th:text="${c.id}"></td>
+                <td style="font-weight:600;" th:text="${c.name}"></td>
+                <td><span class="badge badge-blue" th:text="${c.area}"></span></td>
+                <td>
+                    <span class="badge"
+                          th:classappend="${c.demandIndex >= 0.85 ? 'badge-green' : (c.demandIndex >= 0.7 ? 'badge-orange' : 'badge-gray')}"
+                          th:text="${#numbers.formatDecimal(c.demandIndex, 1, 2)}"></span>
+                </td>
+                <td style="text-align:right;">
+                    <div class="cell-actions" style="justify-content:flex-end; gap:.4rem;">
+                        <a th:href="@{/careers/detail/{id}(id=${c.id})}" class="btn-ghost">Ver</a>
+
+                        <form th:action="@{/student/favorites/add/{id}(id=${c.id})}" method="post"
+                              style="display:inline"
+                              th:if="${#authorization.expression('hasRole(''ESTUDIANTE'')')}">
+                            <button type="submit" class="btn-primary"
+                                    style="padding:.4rem .8rem; font-size:.85rem;">
+                                ⭐ Favorito
+                            </button>
+                        </form>
+
+                        <th:block th:if="${#authorization.expression('hasRole(''ADMIN'')')}">
+                            <a th:href="@{/careers/edit/{id}(id=${c.id})}" class="btn-ghost">Editar</a>
+                            <a th:href="@{/careers/delete/{id}(id=${c.id})}"
+                               class="btn-danger"
+                               onclick="return confirm('¿Eliminar esta carrera?')">Eliminar</a>
+                        </th:block>
+                    </div>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div style="margin-top:2rem; text-align:center;">
+        <a th:href="@{/careers/compare}" class="btn-primary">⚖️ Comparar carreras</a>
+    </div>
+
+</main>
+
+</body>
+</html>

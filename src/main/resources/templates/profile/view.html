@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mi Perfil - CareerPath AI</title>
+    <link rel="stylesheet" th:href="@{/css/app.css}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<div th:replace="~{fragments/navbar :: navbar}"></div>
+
+<main class="app-container fade-in" style="max-width:700px;">
+
+    <div class="page-header">
+        <h1>👤 Mi Perfil</h1>
+        <p>Administra tu información personal</p>
+    </div>
+
+    <div th:if="${param.updated}" class="alert alert-success">
+        ✅ Perfil actualizado correctamente.
+    </div>
+
+    <div class="card">
+        <div style="display:flex; align-items:center; gap:1rem; margin-bottom:1.5rem;">
+            <div class="user-avatar" style="width:64px; height:64px; font-size:1.6rem;"
+                 th:text="${#strings.substring(user.fullName, 0, 1).toUpperCase()}">U</div>
+            <div>
+                <h2 style="font-size:1.3rem; color:#0f172a;" th:text="${user.fullName}">Usuario</h2>
+                <p style="color:#64748b; font-size:.9rem;" th:text="${user.username}">correo</p>
+            </div>
+        </div>
+
+        <div style="border-top:1px solid #f1f5f9; padding-top:1.5rem; display:grid; gap:.75rem;">
+            <p><strong style="color:#475569;">Rol:</strong>
+                <span class="badge badge-purple" th:text="${user.role}">ESTUDIANTE</span>
+            </p>
+
+            <!-- 🆕 Institución (solo lectura) -->
+            <p th:if="${institution != null}">
+                <strong style="color:#475569;">🏫 Institución:</strong>
+                <span style="color:#0f172a; font-weight:600;" th:text="${institution.name}">Colegio San Martín</span>
+                <span style="font-size:.8rem; color:#94a3b8; margin-left:.5rem;">(asignado)</span>
+            </p>
+
+            <!-- 🆕 Aula (solo lectura) -->
+            <p th:if="${classroom != null}">
+                <strong style="color:#475569;">🎓 Aula:</strong>
+                <span class="badge badge-blue" th:text="${classroom.name}">5to A</span>
+                <span style="font-size:.85rem; color:#64748b;" th:text="'(' + ${classroom.grade} + ')'">(5to secundaria)</span>
+                <span style="font-size:.8rem; color:#94a3b8; margin-left:.5rem;">(asignado)</span>
+            </p>
+
+            <p th:if="${institution == null && (user.role == 'ESTUDIANTE' || user.role == 'DOCENTE')}"
+               style="font-size:.85rem; color:#94a3b8; font-style:italic;">
+                ℹ️ No estás vinculado a ninguna institución aún.
+            </p>
+        </div>
+    </div>
+
+    <div style="display:flex; gap:.75rem; margin-top:1.5rem; flex-wrap:wrap;">
+        <a th:href="@{/profile/edit}" class="btn-primary">✏️ Editar Perfil</a>
+        <form th:action="@{/profile/delete}" method="post" style="display:inline"
+              onsubmit="return confirm('¿Eliminar tu cuenta permanentemente? Esta acción no se puede deshacer.');">
+            <button type="submit" class="btn-danger"
+                    style="padding:.75rem 1.5rem; border-radius:10px; font-size:.95rem;">
+                🗑️ Eliminar Cuenta
+            </button>
+        </form>
+    </div>
+
+    <div class="alert alert-info" style="margin-top:2rem;">
+        ℹ️ <strong>Nota:</strong> La institución y el aula son asignadas por el colegio y no se pueden modificar desde tu perfil.
+    </div>
+
+</main>
+
+</body>
+</html>

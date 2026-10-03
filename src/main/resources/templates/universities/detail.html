@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${university.name} + ' — CareerPath AI'"></title>
+    <link rel="stylesheet" th:href="@{/css/app.css}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<div th:replace="~{fragments/navbar :: navbar}"></div>
+
+<main class="app-container fade-in" style="max-width:800px;">
+
+    <div class="page-header">
+        <a th:href="@{/universities}" class="btn-ghost" style="padding-left:0;">← Volver al directorio</a>
+    </div>
+
+    <div class="card">
+        <h1 style="font-size:1.8rem; color:#0f172a; margin-bottom:.5rem;"
+            th:text="${university.name}"></h1>
+
+        <p style="color:#64748b; margin-bottom:1rem;">
+            <strong>📍</strong> <span th:text="${university.city}">Lima</span>
+        </p>
+
+        <p style="margin-bottom:1.5rem;">
+            <a th:if="${university.website}" th:href="${university.website}" target="_blank"
+               style="color:#4f46e5; font-weight:600;"
+               th:text="${university.website}">Website</a>
+        </p>
+
+        <p style="color:#334155; margin-bottom:1.5rem;" th:text="${university.description}"></p>
+
+        <h2 style="font-size:1.1rem; margin-bottom:1rem; color:#0f172a;">Facultades</h2>
+        <div style="display:flex; gap:.5rem; flex-wrap:wrap;">
+            <span th:each="f : ${#strings.arraySplit(university.faculties, ',')}"
+                  class="badge badge-purple" th:text="${#strings.trim(f)}"></span>
+        </div>
+    </div>
+
+    <div style="display:flex; gap:1rem; margin-top:1.5rem; flex-wrap:wrap;">
+
+        <!-- 🆕 Editar: SOLO ADMIN -->
+        <a th:href="@{/universities/edit/{id}(id=${university.id})}" class="btn-primary"
+           th:if="${#authorization.expression('hasRole(''ADMIN'')')}">
+            ✏️ Editar
+        </a>
+
+        <a th:href="@{/universities}" class="btn-secondary">Volver</a>
+    </div>
+
+</main>
+
+</body>
+</html>

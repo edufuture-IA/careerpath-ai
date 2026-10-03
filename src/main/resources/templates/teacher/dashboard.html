@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel docente — CareerPath AI</title>
+    <link rel="stylesheet" th:href="@{/css/app.css}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+
+<div th:replace="~{fragments/navbar :: navbar}"></div>
+
+<main class="app-container fade-in">
+
+    <div class="page-header">
+        <h1>Panel del Docente</h1>
+        <p>Monitorea el progreso vocacional de los estudiantes</p>
+    </div>
+
+    <!-- Métricas -->
+    <div class="metrics-grid">
+        <div class="metric-card">
+            <div class="metric-icon">👥</div>
+            <div class="metric-value" th:text="${#lists.size(students)}">0</div>
+            <div class="metric-label">Alumnos (filtrados)</div>
+        </div>
+        <div class="metric-card">
+            <div class="metric-icon">📋</div>
+            <div class="metric-value" th:text="${#lists.size(results)}">0</div>
+            <div class="metric-label">Tests completados</div>
+        </div>
+        <div class="metric-card">
+            <div class="metric-icon">📈</div>
+            <div class="metric-value"
+                 th:text="${#lists.isEmpty(results)} ? '—' : ${results[0].topArea}">—</div>
+            <div class="metric-label">Última área</div>
+        </div>
+    </div>
+
+    <!-- Filtros -->
+    <div class="card" style="margin-bottom:2rem;">
+        <h2 style="font-size:1.1rem; margin-bottom:1rem; color:#0f172a;">🔍 Filtros y búsqueda</h2>
+        <form method="get" th:action="@{/teacher/dashboard}"
+              style="display:flex; gap:1rem; flex-wrap:wrap; align-items:end;">
+
+            <div class="form-group" style="flex:2; min-width:200px; margin:0;">
+                <label for="search">Buscar alumno</label>
+                <input type="text" id="search" name="search" th:value="${searchTerm}"
+                       class="form-control" placeholder="Nombre o correo...">
+            </div>
+
+            <div class="form-group" style="flex:1; min-width:180px; margin:0;">
+                <label for="area">Filtrar por área</label>
+                <select id="area" name="area" class="form-control">
+                    <option value="">Todas las áreas</option>
+                    <option th:each="a : ${availableAreas}" th:value="${a}"
+                            th:text="${a}"
+                            th:selected="${a == areaFilter}"></option>
+                </select>
+            </div>
+
+            <button type="submit" class="btn-primary">🔍 Filtrar</button>
+            <a th:href="@{/teacher/dashboard}" class="btn-secondary">Limpiar</a>
+        </form>
+    </div>
+
+    <!-- Gráficos -->
+    <div class="section-title">
+        <h2>📊 Estadísticas globales</h2>
+    </div>
+
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:1.5rem; margin-bottom:2rem;">
+        <div class="card">
+            <h3 style="font-size:1rem; margin-bottom:1rem; color:#0f172a;">
+                Distribución por área predominante
+            </h3>
+            <canvas id="chartAreas"></canvas>
+        </div>
+        <div class="card">
+            <h3 style="font-size:1rem; margin-bottom:1rem; color:#0f172a;">
+                Tests completados por fecha
+            </h3>
+            <canvas id="chartDates"></canvas>
+        </div>
+    </div>
+
+    <!-- Alumnos con selección múltiple -->
+    <div class="section-title">
+        <h2>👥 Alumnos registrados</h2>
+    </div>
+
+    <form th:action="@{/teacher/export/bulk}" method="post" id="bulkForm">
+
+        <div style="display:flex; gap:1rem; margin-bottom:1rem; flex-wrap:wrap; align-items:center;">
+            <span style="color:#64748b; font-size:.9rem;">
+                Selecciona alumnos para exportar sus reportes
+            </span>
+            <button type="button" class="btn-ghost"
+                    onclick="document.querySelectorAll('.chk-student').forEach(c=>c.checked=true)">
+                Seleccionar todos
+            </button>
+            <button type="button" class="btn-ghost"
+                    onclick="document.querySelectorAll('.chk-student').forEach(c=>c.checked=false)">
+                Deseleccionar
+            </button>
+            <button type="submit" class="btn-primary">
+                📥 Exportar seleccionados (ZIP)
+            </button>
+        </div>
+
+        <div th:if="${#lists.isEmpty(students)}" class="empty-state">
+            <div class="empty-state-icon">👤</div>
+            <p>No se encontraron alumnos con esos filtros.</p>
+        </div>
+
+        <div th:unless="${#lists.isEmpty(students)}" class="table-card">
+            <table class="table">
+                <thead>
+                <tr>
+                    <th style="width:40px;"></th>
+                    <th>Nombre</th>
+                    <th>Correo</th>
+                    <th>Tests</th>
+                    <th>Última área</th>
+                    <th style="text-align:right;">Acciones</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="s : ${students}">
+                    <td>
+                        <input type="checkbox" name="ids" class="chk-student"
+                               th:value="${s.id}"
+                               style="width:18px; height:18px; accent-color:#4f46e5;">
+                    </td>
+                    <td style="font-weight:600;" th:text="${s.fullName}">-</td>
+                    <td th:text="${s.username}">-</td>
+                    <td>
+                        <span class="badge badge-blue"
+                              th:text="${resultCount.getOrDefault(s.id, 0L)} + ' tests'">0 tests</span>
+                    </td>
+                    <td>
+                        <span class="badge badge-purple"
+                              th:text="${lastAreaByStudent.getOrDefault(s.id, '—')}">—</span>
+                    </td>
+                    <td style="text-align:right;">
+                        <a th:href="@{/teacher/student/{id}(id=${s.id})}" class="btn-ghost">
+                            Ver resultados →
+                        </a>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </form>
+
+    <!-- Últimos resultados -->
+    <div class="section-title">
+        <h2>📋 Últimos resultados</h2>
+    </div>
+
+    <div th:if="${#lists.isEmpty(results)}" class="empty-state">
+        <div class="empty-state-icon">📭</div>
+        <p>Ningún alumno ha completado el test todavía.</p>
+    </div>
+
+    <div th:unless="${#lists.isEmpty(results)}" class="table-card">
+        <table class="table">
+            <thead>
+            <tr>
+                <th>Alumno</th>
+                <th>Fecha</th>
+                <th>Área</th>
+                <th style="text-align:right;">Exportar</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="r : ${results}">
+                <td style="font-weight:600;" th:text="${r.student.fullName}"></td>
+                <td th:text="${#temporals.format(r.completedAt, 'dd/MM/yyyy HH:mm')}"></td>
+                <td><span class="badge badge-purple" th:text="${r.topArea}"></span></td>
+                <td style="text-align:right;">
+                    <a th:href="@{/teacher/export/pdf/{id}(id=${r.id})}" class="btn-ghost">📄 PDF</a>
+                    <a th:href="@{/teacher/export/word/{id}(id=${r.id})}" class="btn-ghost">📝 Word</a>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+</main>
+
+<script th:inline="javascript">
+    /* ====== Gráfico 1: Distribución por área ====== */
+    const areaLabels = /*[[${areaDistribution.keySet()}]]*/ [];
+    const areaValues = /*[[${areaDistribution.values()}]]*/ [];
+
+    new Chart(document.getElementById('chartAreas'), {
+        type: 'doughnut',
+        data: {
+            labels: areaLabels,
+            datasets: [{
+                data: areaValues,
+                backgroundColor: [
+                    'rgba(79, 70, 229, 0.85)',
+                    'rgba(236, 72, 153, 0.85)',
+                    'rgba(6, 182, 212, 0.85)',
+                    'rgba(245, 158, 11, 0.85)',
+                    'rgba(16, 185, 129, 0.85)'
+                ],
+                borderWidth: 0
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: { position: 'bottom', labels: { font: { size: 12 } } }
+            }
+        }
+    });
+
+    /* ====== Gráfico 2: Tests por fecha ====== */
+    const dateLabels = /*[[${testsByDay.keySet()}]]*/ [];
+    const dateValues = /*[[${testsByDay.values()}]]*/ [];
+
+    new Chart(document.getElementById('chartDates'), {
+        type: 'line',
+        data: {
+            labels: dateLabels,
+            datasets: [{
+                label: 'Tests completados',
+                data: dateValues,
+                borderColor: 'rgba(79, 70, 229, 1)',
+                backgroundColor: 'rgba(79, 70, 229, 0.15)',
+                fill: true,
+                tension: 0.3,
+                pointBackgroundColor: '#4f46e5',
+                pointRadius: 5
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: { legend: { display: false } },
+            scales: {
+                y: { beginAtZero: true, grid: { color: '#f1f5f9' }, ticks: { stepSize: 1 } },
+                x: { grid: { display: false } }
+            }
+        }
+    });
+</script>
+
+</body>
+</html>
