@@ -72,7 +72,8 @@ public class SecurityConfig {
                                  "/newsletter/**",
                                  "/institution/register",
                                  "/share/**",                        // 🆕 Compartir resultados
-                                 "/css/**", "/js/**", "/images/**").permitAll()
+                                 "/css/**", "/js/**", "/images/**",
+                                 "/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**").permitAll()
 
                 // ===== Universidades: LECTURA pública =====
                 .requestMatchers(HttpMethod.GET, "/universities",
