@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel Colegio - CareerPath AI</title>
+    <link rel="stylesheet" th:href="@{/css/app.css}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+
+<div th:replace="~{fragments/navbar :: navbar}"></div>
+
+<main class="app-container fade-in">
+
+    <div th:if="${param.classroomCreated}" class="alert alert-success">✅ Aula creada correctamente.</div>
+    <div th:if="${param.classroomDeleted}" class="alert alert-success">🗑️ Aula eliminada.</div>
+    <div th:if="${param.unauthorized}" class="alert alert-error">⚠️ No tienes acceso a ese alumno.</div>
+
+    <div class="page-header" style="display:flex; justify-content:space-between; align-items:flex-end; flex-wrap:wrap; gap:1rem;">
+        <div>
+            <h1 th:text="'🏫 ' + ${institution.name}">Panel Colegio</h1>
+            <p>Gestiona tus aulas, alumnos y docentes</p>
+        </div>
+        <div style="display:flex; gap:.5rem; flex-wrap:wrap;">
+            <a th:href="@{/institution/export/csv}" class="btn-primary">
+                📥 Exportar CSV
+            </a>
+            <a th:href="@{/institution/classrooms/compare}" class="btn-secondary">
+                📊 Comparar aulas
+            </a>
+        </div>
+    </div>
+
+    <!-- Código de invitación -->
+    <div class="card card-hero" style="margin-bottom:2rem;">
+        <h2>Código de Invitación</h2>
+        <p>Comparte este código con alumnos y docentes:</p>
+        <div style="background:rgba(255,255,255,0.2); padding:1rem 1.5rem; border-radius:10px; display:inline-block; margin-top:.5rem;">
+            <span style="font-family:monospace; font-size:2.2rem; letter-spacing:.4rem; font-weight:800; color:#fff;"
+                  th:text="${institution.invitationCode}">ABC12345</span>
+        </div>
+    </div>
+
+    <!-- Métricas -->
+    <div class="metrics-grid">
+        <div class="metric-card">
+            <div class="metric-icon">👥</div>
+            <div class="metric-value" th:text="${students.size()}">0</div>
+            <div class="metric-label">Alumnos</div>
+        </div>
+        <div class="metric-card">
+            <div class="metric-icon">👨‍🏫</div>
+            <div class="metric-value" th:text="${teachers.size()}">0</div>
+            <div class="metric-label">Docentes</div>
+        </div>
+        <div class="metric-card">
+            <div class="metric-icon">📋</div>
+            <div class="metric-value" th:text="${totalTests}">0</div>
+            <div class="metric-label">Tests completados</div>
+        </div>
+        <div class="metric-card">
+            <div class="metric-icon">🎓</div>
+            <div class="metric-value" th:text="${classrooms.size()}">0</div>
+            <div class="metric-label">Aulas</div>
+        </div>
+    </div>
+
+    <!-- Gráfico de distribución por área -->
+    <div class="section-title">
+        <h2>📊 Distribución de áreas vocacionales</h2>
+    </div>
+
+    <div class="card" style="margin-bottom:2rem;">
+        <canvas id="chartAreas" style="max-height:350px;"></canvas>
+    </div>
+
+    <!-- Crear aula -->
+    <div class="card" style="margin-bottom:2rem;">
+        <h2 style="font-size:1.1rem; margin-bottom:1rem; color:#0f172a;">➕ Crear Nueva Aula</h2>
+        <form th:action="@{/institution/classrooms}" method="post"
+              style="display:flex; gap:.75rem; flex-wrap:wrap;">
+            <input type="text" name="name" class="form-control" placeholder="Nombre (ej: 5to A)"
+                   required style="flex:1; min-width:200px;">
+            <input type="text" name="grade" class="form-control"
+                   placeholder="Grado (ej: 5to secundaria)" style="flex:1; min-width:200px;">
+            <button type="submit" class="btn-primary">Crear Aula</button>
+        </form>
+    </div>
+
+    <!-- Aulas -->
+    <div class="section-title">
+        <h2>🎓 Aulas Registradas</h2>
+    </div>
+
+    <div th:if="${classrooms.isEmpty()}" class="empty-state">
+        <div class="empty-state-icon">🎓</div>
+        <p>Aún no has creado ninguna aula.</p>
+    </div>
+
+    <div th:unless="${classrooms.isEmpty()}"
+         style="display:grid; grid-template-columns:repeat(auto-fill, minmax(280px, 1fr)); gap:1.5rem; margin-bottom:2rem;">
+        <div th:each="c : ${classrooms}" class="card">
+            <div style="display:flex; justify-content:space-between; align-items:start;">
+                <div>
+                    <h3 style="font-size:1.15rem; color:#0f172a;" th:text="${c.name}">5to A</h3>
+                    <p style="color:#64748b; font-size:.85rem;" th:text="${c.grade}">5to secundaria</p>
+                </div>
+            </div>
+
+            <div style="display:flex; gap:.4rem; margin-top:.8rem; flex-wrap:wrap;">
+                <span class="badge badge-blue"
+                      th:text="${classroomSummary.get(c.id).get('studentCount')} + ' alumnos'">0</span>
+                <span class="badge badge-purple"
+                      th:text="${classroomSummary.get(c.id).get('teacherCount')} + ' docentes'">0</span>
+                <span class="badge badge-green"
+                      th:text="${classroomSummary.get(c.id).get('completion')} + '% test'">0%</span>
+            </div>
+
+            <p style="margin-top:.6rem; font-size:.85rem; color:#475569;">
+                <strong>Área top:</strong>
+                <span th:text="${classroomSummary.get(c.id).get('topArea')}">—</span>
+            </p>
+
+            <div style="display:flex; gap:.5rem; margin-top:1rem; flex-wrap:wrap;">
+                <a th:href="@{/institution/classrooms/{id}(id=${c.id})}"
+                   class="btn-primary" style="padding:.5rem 1rem; font-size:.85rem;">
+                    👥 Gestionar
+                </a>
+                <a th:href="@{/institution/classrooms/delete/{id}(id=${c.id})}"
+                   class="btn-danger"
+                   onclick="return confirm('¿Eliminar aula?');">Eliminar</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Alumnos con filtros -->
+    <div class="section-title">
+        <h2>👥 Alumnos (<span th:text="${students.size()}">0</span>)</h2>
+    </div>
+
+    <div class="card" style="margin-bottom:1.5rem;">
+        <form method="get" th:action="@{/institution/dashboard}"
+              style="display:flex; gap:1rem; flex-wrap:wrap; align-items:end;">
+            <div class="form-group" style="flex:2; min-width:200px; margin:0;">
+                <label for="search">🔍 Buscar alumno</label>
+                <input type="text" id="search" name="search" th:value="${searchTerm}"
+                       class="form-control" placeholder="Nombre o correo...">
+            </div>
+            <div class="form-group" style="flex:1; min-width:180px; margin:0;">
+                <label for="classroomId">🎓 Filtrar por aula</label>
+                <select id="classroomId" name="classroomId" class="form-control">
+                    <option value="">Todas las aulas</option>
+                    <option th:each="c : ${classrooms}" th:value="${c.id}"
+                            th:text="${c.name}"
+                            th:selected="${c.id == classroomFilter}"></option>
+                </select>
+            </div>
+            <button type="submit" class="btn-primary">Filtrar</button>
+            <a th:href="@{/institution/dashboard}" class="btn-secondary">Limpiar</a>
+        </form>
+    </div>
+
+    <div th:if="${students.isEmpty()}" class="empty-state">
+        <div class="empty-state-icon">👤</div>
+        <p>No se encontraron alumnos con esos filtros.</p>
+    </div>
+
+    <div th:unless="${students.isEmpty()}" class="table-card" style="margin-bottom:2rem;">
+        <table class="table">
+            <thead>
+            <tr>
+                <th>Nombre</th>
+                <th>Correo</th>
+                <th>Tests</th>
+                <th style="text-align:right;">Acciones</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="s : ${students}">
+                <td style="font-weight:600;" th:text="${s.fullName}">-</td>
+                <td th:text="${s.username}">-</td>
+                <td>
+                    <span class="badge badge-blue"
+                          th:text="${testCount.getOrDefault(s.id, 0)} + ' tests'">0</span>
+                </td>
+                <td style="text-align:right;">
+                    <a th:href="@{/institution/students/{id}(id=${s.id})}" class="btn-ghost">
+                        Ver detalle →
+                    </a>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Docentes -->
+    <div class="section-title">
+        <h2>👨‍🏫 Docentes (<span th:text="${teachers.size()}">0</span>)</h2>
+    </div>
+
+    <div th:if="${teachers.isEmpty()}" class="empty-state">
+        <p>Aún no hay docentes registrados.</p>
+    </div>
+
+    <div th:unless="${teachers.isEmpty()}" class="table-card" style="margin-bottom:2rem;">
+        <table class="table">
+            <thead>
+            <tr><th>Nombre</th><th>Correo</th></tr>
+            </thead>
+            <tbody>
+            <tr th:each="t : ${teachers}">
+                <td style="font-weight:600;" th:text="${t.fullName}">-</td>
+                <td th:text="${t.username}">-</td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Últimos resultados -->
+    <div class="section-title">
+        <h2>📋 Últimos resultados</h2>
+    </div>
+
+    <div th:if="${latestResults.isEmpty()}" class="empty-state">
+        <p>Ningún alumno ha completado el test todavía.</p>
+    </div>
+
+    <div th:unless="${latestResults.isEmpty()}" class="table-card">
+        <table class="table">
+            <thead>
+            <tr>
+                <th>Alumno</th>
+                <th>Fecha</th>
+                <th>Área</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="r : ${latestResults}">
+                <td style="font-weight:600;" th:text="${r.student.fullName}">-</td>
+                <td th:text="${#temporals.format(r.completedAt, 'dd/MM/yyyy HH:mm')}">-</td>
+                <td><span class="badge badge-purple" th:text="${r.topArea}">-</span></td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+</main>
+
+<script th:inline="javascript">
+    const areaLabels = /*[[${areaDistribution.keySet()}]]*/ [];
+    const areaValues = /*[[${areaDistribution.values()}]]*/ [];
+
+    new Chart(document.getElementById('chartAreas'), {
+        type: 'bar',
+        data: {
+            labels: areaLabels,
+            datasets: [{
+                label: 'Alumnos',
+                data: areaValues,
+                backgroundColor: [
+                    'rgba(79, 70, 229, 0.85)',
+                    'rgba(236, 72, 153, 0.85)',
+                    'rgba(6, 182, 212, 0.85)',
+                    'rgba(245, 158, 11, 0.85)',
+                    'rgba(16, 185, 129, 0.85)'
+                ],
+                borderRadius: 10,
+                borderSkipped: false
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: { legend: { display: false } },
+            scales: {
+                y: { beginAtZero: true, grid: { color: '#f1f5f9' }, ticks: { stepSize: 1 } },
+                x: { grid: { display: false } }
+            }
+        }
+    });
+</script>
+
+</body>
+</html>

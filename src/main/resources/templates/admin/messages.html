@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mensajes de Contacto - CareerPath AI</title>
+    <link rel="stylesheet" th:href="@{/css/app.css}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<div th:replace="~{fragments/navbar :: navbar}"></div>
+
+<main class="app-container fade-in">
+
+    <div class="page-header" style="display:flex; justify-content:space-between; align-items:flex-end; flex-wrap:wrap; gap:1rem;">
+        <div>
+            <h1>📩 Mensajes de Contacto B2B</h1>
+            <p>Solicitudes de colegios y universidades interesadas</p>
+        </div>
+        <a th:href="@{/admin/dashboard}" class="btn-secondary">← Volver al dashboard</a>
+    </div>
+
+    <div th:if="${messages.isEmpty()}" class="empty-state">
+        <div class="empty-state-icon">📭</div>
+        <p>No hay mensajes de contacto todavía.</p>
+    </div>
+
+    <div th:unless="${messages.isEmpty()}" style="display:grid; gap:1rem;">
+        <div th:each="m : ${messages}" class="card">
+            <div style="display:flex; justify-content:space-between; align-items:start; flex-wrap:wrap; gap:.5rem;">
+                <div>
+                    <h3 style="font-size:1.1rem; color:#0f172a; margin-bottom:.3rem;"
+                        th:text="${m.fullName}">Nombre</h3>
+                    <p style="color:#64748b; font-size:.85rem;">
+                        📧 <span th:text="${m.email}">correo</span>
+                        <span th:if="${m.phone}"> · 📞 <span th:text="${m.phone}"></span></span>
+                    </p>
+                    <p th:if="${m.institutionName}" style="color:#64748b; font-size:.85rem;">
+                        🏫 <span th:text="${m.institutionName}"></span>
+                    </p>
+                </div>
+                <div style="text-align:right;">
+                    <span class="badge"
+                          th:classappend="${m.attended ? 'badge-green' : 'badge-orange'}"
+                          th:text="${m.attended ? 'Atendido' : 'Pendiente'}">Pendiente</span>
+                    <p style="color:#94a3b8; font-size:.75rem; margin-top:.3rem;"
+                       th:text="${#temporals.format(m.createdAt, 'dd/MM/yyyy HH:mm')}">-</p>
+                </div>
+            </div>
+
+            <p style="margin-top:1rem; padding:1rem; background:#f8fafc; border-radius:8px; color:#334155;"
+               th:text="${m.message}">Mensaje</p>
+
+            <div style="display:flex; gap:.5rem; margin-top:1rem;">
+                <form th:if="${!m.attended}"
+                      th:action="@{/admin/messages/mark/{id}(id=${m.id})}" method="post">
+                    <button type="submit" class="btn-primary"
+                            style="padding:.4rem .9rem; font-size:.85rem;">
+                        ✅ Marcar atendido
+                    </button>
+                </form>
+                <form th:action="@{/admin/messages/delete/{id}(id=${m.id})}" method="post"
+                      onsubmit="return confirm('¿Eliminar mensaje?');">
+                    <button type="submit" class="btn-danger">🗑️ Eliminar</button>
+                </form>
+                <a th:href="'mailto:' + ${m.email}" class="btn-secondary"
+                   style="padding:.4rem .9rem; font-size:.85rem;">
+                    ✉️ Responder
+                </a>
+            </div>
+        </div>
+    </div>
+
+</main>
+
+</body>
+</html>

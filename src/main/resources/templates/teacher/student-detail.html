@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="'Alumno: ' + ${student.fullName} + ' — CareerPath AI'"></title>
+    <link rel="stylesheet" th:href="@{/css/app.css}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<div th:replace="~{fragments/navbar :: navbar}"></div>
+
+<main class="app-container fade-in">
+
+    <div class="page-header">
+        <a th:href="@{/teacher/dashboard}" class="btn-ghost" style="padding-left:0;">← Volver al panel</a>
+        <h1 th:text="${student.fullName}"></h1>
+        <p th:text="${student.username}"></p>
+    </div>
+
+    <div th:if="${#lists.isEmpty(results)}" class="empty-state">
+        <div class="empty-state-icon">📭</div>
+        <p>Este alumno aún no ha realizado el test vocacional.</p>
+    </div>
+
+    <div th:unless="${#lists.isEmpty(results)}" class="table-card">
+        <table class="table">
+            <thead>
+            <tr>
+                <th>Fecha</th>
+                <th>Área predominante</th>
+                <th>Carreras recomendadas</th>
+                <th style="text-align:right;">Exportar</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="r : ${results}">
+                <td th:text="${#temporals.format(r.completedAt, 'dd/MM/yyyy HH:mm')}"></td>
+                <td><span class="badge badge-purple" th:text="${r.topArea}"></span></td>
+                <td th:text="${r.recommendedCareers}"></td>
+                <td style="text-align:right;">
+                    <a th:href="@{/teacher/export/pdf/{id}(id=${r.id})}" class="btn-ghost">📄 PDF</a>
+                    <a th:href="@{/teacher/export/word/{id}(id=${r.id})}" class="btn-ghost">📝 Word</a>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</main>
+
+</body>
+</html>

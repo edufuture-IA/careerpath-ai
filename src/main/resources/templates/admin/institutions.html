@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Instituciones - CareerPath AI</title>
+    <link rel="stylesheet" th:href="@{/css/app.css}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<div th:replace="~{fragments/navbar :: navbar}"></div>
+
+<main class="app-container fade-in">
+
+    <div th:if="${param.created}" class="alert alert-success">✅ Institución creada.</div>
+    <div th:if="${param.deleted}" class="alert alert-success">🗑️ Institución eliminada.</div>
+
+    <div class="page-header" style="display:flex; justify-content:space-between; align-items:flex-end; flex-wrap:wrap; gap:1rem;">
+        <div>
+            <h1>🏫 Instituciones Educativas</h1>
+            <p>Administra los colegios registrados</p>
+        </div>
+        <a th:href="@{/admin/institutions/new}" class="btn-primary">+ Nueva Institución</a>
+    </div>
+
+    <div th:if="${institutions.isEmpty()}" class="empty-state">
+        <div class="empty-state-icon">🏫</div>
+        <p>No hay instituciones registradas.</p>
+    </div>
+
+    <div th:unless="${institutions.isEmpty()}" class="table-card">
+        <table class="table">
+            <thead>
+            <tr>
+                <th>ID</th>
+                <th>Nombre</th>
+                <th>Correo</th>
+                <th>Código</th>
+                <th style="text-align:right;">Acciones</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="i : ${institutions}">
+                <td th:text="${i.id}">-</td>
+                <td style="font-weight:600;" th:text="${i.name}">-</td>
+                <td th:text="${i.contactEmail}">-</td>
+                <td><span class="badge badge-blue" th:text="${i.invitationCode}">-</span></td>
+                <td style="text-align:right;">
+                    <a th:href="@{/admin/institutions/delete/{id}(id=${i.id})}"
+                       class="btn-danger"
+                       onclick="return confirm('¿Eliminar institución? Los alumnos no se eliminan, solo quedan sin institución.');">
+                        Eliminar
+                    </a>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+</main>
+
+</body>
+</html>

@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Resultado vocacional compartido — CareerPath AI</title>
+    <link rel="stylesheet" th:href="@{/css/app.css}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+
+<nav class="app-navbar">
+    <a href="/" class="logo">
+        <span class="logo-icon">🎓</span>
+        <span>CareerPath <span class="logo-accent">AI</span></span>
+    </a>
+    <div class="nav-right">
+        <a th:href="@{/}" class="nav-link">Inicio</a>
+        <a th:href="@{/register}" class="btn-logout">Crear cuenta gratis</a>
+    </div>
+</nav>
+
+<main class="app-container fade-in">
+
+    <div class="alert alert-info" style="margin-bottom:1.5rem;">
+        🔗 <strong>Este es un resultado compartido.</strong>
+        Estás viendo el perfil vocacional de <strong th:text="${result.student.fullName}"></strong>.
+        <a th:href="@{/register}" style="color:#4f46e5; font-weight:600;">Crea tu cuenta</a> y descubre el tuyo.
+    </div>
+
+    <div class="result-header">
+        <p>Área predominante</p>
+        <div class="top-area" th:text="${result.topArea}"></div>
+        <p th:text="'Test completado el ' + ${#temporals.format(result.completedAt, 'dd/MM/yyyy HH:mm')}"></p>
+    </div>
+
+    <div class="grid-2">
+        <div class="chart-card">
+            <h3>📊 Puntajes por área</h3>
+            <canvas id="chartAreas"></canvas>
+        </div>
+
+        <div class="career-list-card">
+            <h3>🎯 Carreras recomendadas</h3>
+            <div class="career-item"
+                 th:each="c, iter : ${recommended}"
+                 th:with="idx=${iter.index + 1}">
+                <div class="career-rank"
+                     th:classappend="${idx == 1 ? 'top-1' : (idx == 2 ? 'top-2' : (idx == 3 ? 'top-3' : ''))}"
+                     th:text="${idx}">1</div>
+                <div class="career-name" th:text="${c}"></div>
+            </div>
+        </div>
+    </div>
+
+    <div style="text-align:center; margin-top:2rem;">
+        <a th:href="@{/register}" class="btn-primary">✨ Quiero hacer mi propio test</a>
+    </div>
+
+</main>
+
+<script th:inline="javascript">
+    const labels = /*[[${areaScores.keySet()}]]*/ [];
+    const values = /*[[${areaScores.values()}]]*/ [];
+
+    new Chart(document.getElementById('chartAreas'), {
+        type: 'bar',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Puntaje',
+                data: values,
+                backgroundColor: [
+                    'rgba(79, 70, 229, 0.85)',
+                    'rgba(236, 72, 153, 0.85)',
+                    'rgba(6, 182, 212, 0.85)',
+                    'rgba(245, 158, 11, 0.85)',
+                    'rgba(16, 185, 129, 0.85)'
+                ],
+                borderRadius: 10,
+                borderSkipped: false
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: { legend: { display: false } },
+            scales: {
+                y: { beginAtZero: true, grid: { color: '#f1f5f9' } },
+                x: { grid: { display: false } }
+            }
+        }
+    });
+</script>
+
+</body>
+</html>
