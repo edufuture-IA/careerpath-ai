@@ -2,6 +2,7 @@ package pe.edu.upc.careerpath_ai.dto;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 import lombok.Data;
 
 @Data
@@ -13,5 +14,5 @@ public class InstitutionForm {
     private String phone;
 
     @NotBlank private String adminFullName;
-    @NotBlank private String adminPassword;
+@NotBlank @Size(min = 8, message = "Mínimo 8 caracteres") private String adminPassword;
 }
