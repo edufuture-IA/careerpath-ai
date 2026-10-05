@@ -14,5 +14,5 @@ public class InstitutionForm {
     private String phone;
 
     @NotBlank private String adminFullName;
-@NotBlank @Size(min = 8, message = "Mínimo 8 caracteres") private String adminPassword;
+    @NotBlank @Size(min = 8, message = "Mínimo 8 caracteres") private String adminPassword;
 }

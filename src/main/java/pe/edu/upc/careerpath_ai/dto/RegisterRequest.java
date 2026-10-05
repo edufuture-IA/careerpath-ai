@@ -11,7 +11,7 @@ public record RegisterRequest(
         @NotBlank(message = "El correo es obligatorio")
         @Email(message = "Correo inválido") String username,
         @NotBlank(message = "La contraseña es obligatoria")
-        @Size(min = 6, message = "Mínimo 8 caracteres") String password,
+        @Size(min = 8, message = "Mínimo 8 caracteres") String password,
         @NotNull(message = "El rol es obligatorio") Role role,
         String invitationCode   // 🆕 Opcional
 ) {}
