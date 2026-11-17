@@ -1,17 +1,14 @@
 package pe.edu.upc.careerpath_ai.controller;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import pe.edu.upc.careerpath_ai.model.User;
+import pe.edu.upc.careerpath_ai.service.AIService;
 import pe.edu.upc.careerpath_ai.service.TestService;
 import pe.edu.upc.careerpath_ai.service.UserService;
-
-import java.util.Map;
 
 @Controller
 @RequestMapping("/student")
@@ -20,6 +17,7 @@ public class StudentController {
 
     private final UserService userService;
     private final TestService testService;
+    private final AIService aiService;
 
     @GetMapping("/dashboard")
     public String dashboard(Authentication auth, Model model) {
@@ -30,20 +28,42 @@ public class StudentController {
     }
 
     @GetMapping("/results/{id}")
-    public String results(@PathVariable Long id, Model model) {
+    public String results(@PathVariable Long id, Model model, Authentication auth) {
         var result = testService.findById(id);
+        
+        User currentUser = userService.findByUsername(auth.getName()).orElseThrow();
+        if (!result.getStudent().getId().equals(currentUser.getId())) {
+            return "redirect:/student/dashboard";
+        }
+
         model.addAttribute("result", result);
         model.addAttribute("areaScores", testService.parseAreaScores(result.getAreaScores()));
         model.addAttribute("recommended", testService.parseRecommendedCareers(result.getRecommendedCareers()));
         return "student/results";
     }
 
-    // 🆕 Endpoint AJAX para generar token de compartir
-    @PostMapping("/results/{id}/share")
-    @ResponseBody
-    @Transactional
-    public ResponseEntity<Map<String, String>> share(@PathVariable Long id) {
-        String token = testService.generateShareToken(id);
-        return ResponseEntity.ok(Map.of("token", token, "url", "/share/" + token));
+    @GetMapping("/results/{id}/ai-roadmap")
+    public String getRoadmap(@PathVariable Long id, Model model, Authentication auth) {
+        var result = testService.findById(id);
+        
+        User currentUser = userService.findByUsername(auth.getName()).orElseThrow();
+        if (!result.getStudent().getId().equals(currentUser.getId())) {
+            return "redirect:/student/dashboard";
+        }
+
+        if (result.getAiRoadmap() == null || result.getAiRoadmap().isBlank()) {
+            String aiText = aiService.generateRoadmap(result);
+            
+            // Solo guardamos si NO es un mensaje de error
+            if (aiText != null && !aiText.startsWith("⚠️")) {
+                result.setAiRoadmap(aiText);
+                testService.save(result);
+            }
+            model.addAttribute("aiContent", aiText);
+        } else {
+            model.addAttribute("aiContent", result.getAiRoadmap());
+        }
+
+        return "fragments/ai-fragment :: response";
     }
 }

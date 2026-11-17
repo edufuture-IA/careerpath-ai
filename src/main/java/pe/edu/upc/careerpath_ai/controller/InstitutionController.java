@@ -12,7 +12,6 @@ import org.springframework.web.bind.annotation.*;
 import pe.edu.upc.careerpath_ai.dto.InstitutionForm;
 import pe.edu.upc.careerpath_ai.model.*;
 import pe.edu.upc.careerpath_ai.service.*;
-import pe.edu.upc.careerpath_ai.service.impl.ExportServiceImpl;
 
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -26,6 +25,18 @@ public class InstitutionController {
     private final InstitutionService institutionService;
     private final UserService userService;
     private final TestService testService;
+
+    // =====================================================
+    // Helper: obtiene el usuario autenticado verificando institución
+    // =====================================================
+    private User requireAdminWithInstitution(Authentication auth) {
+        User admin = userService.findByUsername(auth.getName())
+                .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+        if (admin.getInstitution() == null) {
+            throw new IllegalStateException("Tu usuario no está asociado a una institución");
+        }
+        return admin;
+    }
 
     // =====================================================
     // REGISTRO
@@ -58,35 +69,29 @@ public class InstitutionController {
                             @RequestParam(required = false) String search,
                             @RequestParam(required = false) Long classroomId) {
 
-        User admin = userService.findByUsername(auth.getName())
-                .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+        User admin;
+        try {
+            admin = requireAdminWithInstitution(auth);
+        } catch (IllegalStateException e) {
+            return "redirect:/profile?sinInstitucion";
+        }
 
         Long instId = admin.getInstitution().getId();
         Institution inst = institutionService.findById(instId);
 
-        // 🆕 Filtrar alumnos
         List<User> students = institutionService.filterStudents(instId, search, classroomId);
         List<User> teachers = institutionService.teachersOf(instId);
         List<Classroom> classrooms = institutionService.classrooms(instId);
 
-        // 🆕 Tests por alumno
         Map<Long, Integer> testCount = institutionService.testCountByStudent(students);
-
-        // 🆕 Distribución por área
         Map<String, Long> areaDistribution = institutionService.areaDistribution(instId);
-
-        // 🆕 Resumen por aula
         Map<Long, Map<String, Object>> classroomSummary =
                 institutionService.classroomSummary(instId);
-
-        // 🆕 Últimos resultados
         List<TestResult> latestResults = institutionService.latestResultsOf(instId);
 
-        // Métricas globales
         long totalTests = students.stream()
                 .mapToLong(s -> testService.findByStudent(s).size())
                 .sum();
-
         long studentsWithTest = students.stream()
                 .filter(s -> !testService.findByStudent(s).isEmpty())
                 .count();
@@ -113,7 +118,12 @@ public class InstitutionController {
     public String createClassroom(@RequestParam String name,
                                   @RequestParam(required = false) String grade,
                                   Authentication auth) {
-        User admin = userService.findByUsername(auth.getName()).orElseThrow();
+        User admin;
+        try {
+            admin = requireAdminWithInstitution(auth);
+        } catch (IllegalStateException e) {
+            return "redirect:/profile?sinInstitucion";
+        }
         institutionService.createClassroom(admin.getInstitution().getId(), name, grade);
         return "redirect:/institution/dashboard?classroomCreated";
     }
@@ -127,7 +137,12 @@ public class InstitutionController {
     @GetMapping("/classrooms/{id}")
     @Transactional(readOnly = true)
     public String classroomDetail(@PathVariable Long id, Model model, Authentication auth) {
-        User admin = userService.findByUsername(auth.getName()).orElseThrow();
+        User admin;
+        try {
+            admin = requireAdminWithInstitution(auth);
+        } catch (IllegalStateException e) {
+            return "redirect:/profile?sinInstitucion";
+        }
         Long instId = admin.getInstitution().getId();
 
         Classroom classroom = institutionService.classrooms(instId).stream()
@@ -175,17 +190,21 @@ public class InstitutionController {
     }
 
     // =====================================================
-    // 🆕 DETALLE DE UN ALUMNO (desde el colegio)
+    // DETALLE DE UN ALUMNO
     // =====================================================
     @GetMapping("/students/{id}")
     @Transactional(readOnly = true)
     public String studentDetail(@PathVariable Long id, Model model, Authentication auth) {
-        User admin = userService.findByUsername(auth.getName()).orElseThrow();
+        User admin;
+        try {
+            admin = requireAdminWithInstitution(auth);
+        } catch (IllegalStateException e) {
+            return "redirect:/profile?sinInstitucion";
+        }
         Long instId = admin.getInstitution().getId();
 
         User student = userService.findById(id);
 
-        // Verificar que el alumno pertenece a la institución
         if (student.getInstitution() == null
                 || !student.getInstitution().getId().equals(instId)) {
             return "redirect:/institution/dashboard?unauthorized";
@@ -201,12 +220,17 @@ public class InstitutionController {
     }
 
     // =====================================================
-    // 🆕 COMPARAR AULAS
+    // COMPARAR AULAS
     // =====================================================
     @GetMapping("/classrooms/compare")
     @Transactional(readOnly = true)
     public String compareClassrooms(Model model, Authentication auth) {
-        User admin = userService.findByUsername(auth.getName()).orElseThrow();
+        User admin;
+        try {
+            admin = requireAdminWithInstitution(auth);
+        } catch (IllegalStateException e) {
+            return "redirect:/profile?sinInstitucion";
+        }
         Long instId = admin.getInstitution().getId();
 
         List<Classroom> classrooms = institutionService.classrooms(instId);
@@ -221,12 +245,19 @@ public class InstitutionController {
     }
 
     // =====================================================
-    // 🆕 EXPORTAR CSV (US19)
+    // EXPORTAR CSV — FIX: escape correcto de TODOS los campos
     // =====================================================
     @GetMapping("/export/csv")
     @Transactional(readOnly = true)
     public void exportCsv(Authentication auth, HttpServletResponse response) throws IOException {
-        User admin = userService.findByUsername(auth.getName()).orElseThrow();
+        User admin;
+        try {
+            admin = requireAdminWithInstitution(auth);
+        } catch (IllegalStateException e) {
+            response.sendError(HttpServletResponse.SC_FORBIDDEN,
+                    "Tu usuario no está asociado a una institución");
+            return;
+        }
         Long instId = admin.getInstitution().getId();
         Institution inst = institutionService.findById(instId);
         List<User> students = institutionService.studentsOf(instId);
@@ -234,7 +265,7 @@ public class InstitutionController {
 
         response.setContentType("text/csv; charset=UTF-8");
         response.setHeader("Content-Disposition",
-                "attachment; filename=alumnos_" + inst.getName().replaceAll("\\s+","_") + ".csv");
+                "attachment; filename=alumnos_" + inst.getName().replaceAll("\\s+", "_") + ".csv");
         response.setCharacterEncoding("UTF-8");
 
         PrintWriter writer = response.getWriter();
@@ -257,20 +288,26 @@ public class InstitutionController {
             String carreras = results.isEmpty() ? "—" : results.get(0).getRecommendedCareers();
             int numTests = results.size();
 
-            writer.printf("%s,%s,%s,%s,%s,\"%s\",%d%n",
-                    escapeCsv(s.getFullName()),
-                    escapeCsv(s.getUsername()),
-                    escapeCsv(aulaName),
-                    escapeCsv(aulaGrade),
-                    escapeCsv(area),
-                    escapeCsv(carreras),
+            writer.printf("%s,%s,%s,%s,%s,%s,%d%n",
+                    csv(s.getFullName()),
+                    csv(s.getUsername()),
+                    csv(aulaName),
+                    csv(aulaGrade),
+                    csv(area),
+                    csv(carreras),
                     numTests);
         }
         writer.flush();
     }
 
-    private String escapeCsv(String value) {
-        if (value == null) return "";
-        return value.replace("\"", "\"\"");
+    /**
+     * Escapa correctamente un campo CSV:
+     *  - envuelve SIEMPRE entre comillas dobles
+     *  - duplica las comillas internas
+     *  - los saltos de línea quedan dentro de las comillas (válido en RFC 4180)
+     */
+    private String csv(String value) {
+        if (value == null) return "\"\"";
+        return "\"" + value.replace("\"", "\"\"") + "\"";
     }
 }

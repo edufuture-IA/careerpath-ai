@@ -18,8 +18,8 @@ import java.io.IOException;
 
 /**
  * Lee "Authorization: Bearer token", valida el JWT y autentica la petición.
- * Si el token falta o es inválido, deja pasar sin autenticar y el EntryPoint responde 401.
- * No es @Component a propósito: Spring Boot registraría el filtro también fuera de la cadena API.
+ * Se registra en {@link pe.edu.upc.careerpath_ai.config.SecurityConfig}
+ * mediante {@code addFilterBefore(...)} dentro de la cadena de la API.
  */
 @RequiredArgsConstructor
 public class JwtAuthenticationFilter extends OncePerRequestFilter {

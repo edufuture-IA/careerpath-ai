@@ -10,13 +10,13 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import pe.edu.upc.careerpath_ai.dto.InstitutionForm;
 import pe.edu.upc.careerpath_ai.model.*;
 import pe.edu.upc.careerpath_ai.repository.*;
 import pe.edu.upc.careerpath_ai.service.*;
 
 import java.util.List;
-import java.util.Optional;
 
 @Controller
 @RequestMapping("/admin")
@@ -28,6 +28,7 @@ public class AdminController {
     private final InstitutionService institutionService;
     private final TestService testService;
     private final ActivityLogService activityLogService;
+    private final CareerService careerService;               // 🆕
 
     private final TestResultRepository testResultRepository;
     private final CareerRepository careerRepository;
@@ -114,7 +115,6 @@ public class AdminController {
         return "redirect:/admin/users?updated";
     }
 
-    // 🆕 Ver tests de un alumno
     @GetMapping("/students/{id}")
     @Transactional(readOnly = true)
     public String viewStudentTests(@PathVariable Long id, Model model) {
@@ -208,7 +208,6 @@ public class AdminController {
         }
     }
 
-    // 🆕 Editar institución
     @GetMapping("/institutions/edit/{id}")
     public String editInstitutionForm(@PathVariable Long id, Model model) {
         Institution inst = institutionService.findById(id);
@@ -216,6 +215,7 @@ public class AdminController {
         return "admin/institution-edit";
     }
 
+    // ✅ CORREGIDO: sin el `institutionService.findAll()` inútil del original
     @PostMapping("/institutions/edit/{id}")
     public String updateInstitution(@PathVariable Long id,
                                     @RequestParam String name,
@@ -224,25 +224,20 @@ public class AdminController {
                                     @RequestParam(required = false) String phone,
                                     Authentication auth, HttpServletRequest request,
                                     Model model) {
-
-        Institution inst = institutionService.findById(id);
-        inst.setName(name);
-        inst.setContactEmail(contactEmail);
-        inst.setAddress(address);
-        inst.setPhone(phone);
-
-        // Guardar usando el repo directamente
-        institutionService.findAll(); // ya no reusamos register
-
         try {
-            // Necesitamos guardar — usamos el service
+            Institution inst = institutionService.findById(id);
+            inst.setName(name);
+            inst.setContactEmail(contactEmail);
+            inst.setAddress(address);
+            inst.setPhone(phone);
+
             institutionService.updateInstitution(inst);
             activityLogService.log("UPDATE_INSTITUTION",
                     "Editó institución: " + name,
                     auth.getName(), "ADMIN", request.getRemoteAddr());
             return "redirect:/admin/institutions?updated";
         } catch (Exception e) {
-            model.addAttribute("institution", inst);
+            model.addAttribute("institution", institutionService.findById(id));
             model.addAttribute("error", e.getMessage());
             return "admin/institution-edit";
         }
@@ -257,6 +252,21 @@ public class AdminController {
                 auth.getName(), "ADMIN", request.getRemoteAddr());
         institutionService.delete(id);
         return "redirect:/admin/institutions?deleted";
+    }
+
+    // =====================================================
+    // 🆕 DEMANDA IA — refrescar una carrera
+    // =====================================================
+    @PostMapping("/careers/{id}/refresh-demand")
+    public String refreshDemand(@PathVariable Long id,
+                                Authentication auth, HttpServletRequest request,
+                                RedirectAttributes ra) {
+        careerService.refreshDemandIndex(id, true);   // force = true
+        activityLogService.log("REFRESH_DEMAND",
+                "Refrescó demanda IA de carrera ID " + id,
+                auth.getName(), "ADMIN", request.getRemoteAddr());
+        ra.addFlashAttribute("msg", "Índice de demanda actualizado por IA");
+        return "redirect:/careers/detail/" + id;
     }
 
     // =====================================================

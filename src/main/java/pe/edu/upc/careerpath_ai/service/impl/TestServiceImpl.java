@@ -24,7 +24,10 @@ public class TestServiceImpl implements TestService {
     private final TestResultRepository testResultRepository;
     private final QuestionRepository questionRepository;
     private final RecommendationService recommendationService;
-
+    @Override
+    public TestResult save(TestResult result) {
+        return testResultRepository.save(result);
+    }
     @Override
     public TestResult processTest(User student, List<TestAnswerDTO> answerDTOs) {
         Map<String, Integer> areaScores = new HashMap<>();

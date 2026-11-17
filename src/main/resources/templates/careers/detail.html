@@ -3,103 +3,130 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title th:text="${career.name} + ' — CareerPath AI'"></title>
+    <title th:text="${career.name} + ' - CareerPath AI'">Detalle de Carrera</title>
     <link rel="stylesheet" th:href="@{/css/app.css}">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 </head>
 <body>
 
 <div th:replace="~{fragments/navbar :: navbar}"></div>
 
-<main class="app-container fade-in" style="max-width:800px;">
+<main class="app-container fade-in">
 
     <div class="page-header">
-        <a th:href="@{/careers}" class="btn-ghost" style="padding-left:0;">← Volver al catálogo</a>
+        <a th:href="@{/careers}" class="btn-ghost" style="padding-left:0; margin-bottom:1rem;">← Volver al catálogo</a>
+        <h1 th:text="${career.name}">Ingeniería de Sistemas</h1>
+        <p><span class="badge badge-purple" th:text="${career.area}">Ingeniería</span></p>
     </div>
 
-    <div class="card">
-        <div style="display:flex; justify-content:space-between; align-items:start; margin-bottom:1.5rem; flex-wrap:wrap; gap:1rem;">
+    <div th:if="${param.favAdded}" class="alert alert-success">
+        ¡Carrera agregada a tus favoritos!
+    </div>
+
+    <div class="grid-2">
+        <!-- Columna Izquierda: Info -->
+        <div>
+            <div class="card" style="margin-bottom: 1.5rem;">
+                <p style="font-size: 1.05rem; color: #334155;" th:text="${career.description}">Descripción...</p>
+                
+                <h3 style="margin-top: 1.5rem; font-size: 1rem;">Habilidades Requeridas</h3>
+                <div>
+                    <span th:each="skill : ${#strings.arraySplit(career.requiredSkills, ',')}" 
+                          class="badge badge-blue" style="margin-right: 0.5rem; margin-bottom: 0.5rem;" th:text="${skill}">Lógica</span>
+                </div>
+            </div>
+
+            <!-- Botón Explícame Fácil (IA) -->
+            <div class="card card-soft" style="margin-bottom: 1.5rem;">
+                <p style="margin-bottom: 1rem; font-weight: 600;">¿Muy técnico para ti?</p>
+                <button hx-get="/careers/detail/{id}/ai-explain" 
+                        th:hx-get="@{/careers/detail/{id}/ai-explain(id=${career.id})}"
+                        hx-target="#ai-explain-container" 
+                        hx-indicator="#spinner-explain"
+                        class="btn-secondary">
+                    🧠 Explícame fácil
+                    <span id="spinner-explain" class="htmx-indicator" style="display:none;">⏳</span>
+                </button>
+                <div id="ai-explain-container" style="margin-top: 1rem;"></div>
+            </div>
+        </div>
+        
+        <!-- Columna Derecha: Demanda y Favoritos -->
+        <div>
+            <div class="card text-center" style="margin-bottom: 1.5rem;">
+                <h3 style="font-size: 1rem; color: #64748b;">Índice de Demanda</h3>
+                <div style="font-size: 3rem; font-weight: 800; color: #10b981; margin: 0.5rem 0;"
+                     th:text="${#numbers.formatDecimal(career.demandIndex * 100, 1, 0)} + '%'">88%</div>
+                
+                <span th:if="${career.demandIndexSource == 'AI_GEMINI'}" class="badge badge-green">
+                    🤖 Estimado por IA
+                </span>
+                <p style="font-size: 0.75rem; color: #94a3b8; margin-top: 0.5rem;" 
+                   th:if="${career.demandIndexUpdatedAt != null}"
+                   th:text="'Actualizado: ' + ${#temporals.format(career.demandIndexUpdatedAt, 'dd/MM/yyyy')}"></p>
+            </div>
+
+            <form th:action="@{/student/favorites/add/{id}(id=${career.id})}" method="post">
+                <button type="submit" class="btn-primary" style="width: 100%;">❤️ Guardar en Favoritos</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Sección Día en la Vida (IA) -->
+    <div class="card" style="margin-top: 2rem;">
+        <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem;">
+            <div class="metric-icon" style="background: linear-gradient(135deg, #4f46e5, #7c3aed); color: white; box-shadow: none;">✨</div>
             <div>
-                <h1 style="font-size:1.8rem; font-weight:800; color:#0f172a;" th:text="${career.name}"></h1>
-                <span class="badge badge-blue" style="margin-top:.5rem;" th:text="${career.area}"></span>
-            </div>
-            <span class="badge"
-                  th:classappend="${career.demandIndex >= 0.85 ? 'badge-green' : 'badge-orange'}"
-                  th:text="'Demanda ' + ${#numbers.formatDecimal(career.demandIndex, 1, 2)}"></span>
-        </div>
-
-        <div style="border-top:1px solid #f1f5f9; padding-top:1.5rem;">
-            <h3 style="font-size:.85rem; text-transform:uppercase; letter-spacing:.05em; color:#64748b; margin-bottom:.5rem;">Descripción</h3>
-            <p style="color:#334155; margin-bottom:1.5rem;" th:text="${career.description}"></p>
-
-            <h3 style="font-size:.85rem; text-transform:uppercase; letter-spacing:.05em; color:#64748b; margin-bottom:.5rem;">Habilidades requeridas</h3>
-            <div style="display:flex; gap:.5rem; flex-wrap:wrap;">
-                <span th:each="s : ${#strings.arraySplit(career.requiredSkills, ',')}"
-                      class="badge badge-purple" th:text="${#strings.trim(s)}"></span>
+                <h3 style="margin: 0; font-size: 1.2rem;">¿Cómo sería tu día a día?</h3>
+                <p style="margin: 0; color: #64748b; font-size: 0.9rem;">Descubre la rutina real de un profesional de esta carrera.</p>
             </div>
         </div>
+        
+        <button hx-get="/careers/detail/{id}/ai-day" 
+                th:hx-get="@{/careers/detail/{id}/ai-day(id=${career.id})}"
+                hx-target="#ai-day-container"
+                hx-indicator="#spinner-day"
+                class="btn-primary">
+            Descubrir un día en la vida
+            <span id="spinner-day" class="htmx-indicator" style="display:none;">⏳</span>
+        </button>
+        <div id="ai-day-container" style="margin-top: 1rem;"></div>
     </div>
 
-    <!-- 🆕 Universidades que ofrecen esta carrera -->
-    <div class="section-title" style="margin-top:2rem;">
-        <h2>🎓 Universidades que ofrecen esta área</h2>
+    <!-- Universidades -->
+    <div class="section-title" style="margin-top: 3rem;">
+        <h2>🏫 Universidades que imparten esta área</h2>
     </div>
-
-    <div th:if="${universities.isEmpty()}" class="empty-state">
-        <p>Aún no hay universidades registradas con el área <strong th:text="${career.area}"></strong>.</p>
-    </div>
-
-    <div th:unless="${universities.isEmpty()}"
-         style="display:grid; grid-template-columns:repeat(auto-fill, minmax(280px, 1fr)); gap:1rem;">
-        <div th:each="u : ${universities}" class="card">
-            <h3 style="font-size:1rem; color:#0f172a; margin-bottom:.4rem;" th:text="${u.name}"></h3>
-            <p style="font-size:.85rem; color:#64748b; margin-bottom:.5rem;">
-                📍 <span th:text="${u.city}">Lima</span>
-            </p>
-            <a th:href="@{/universities/detail/{id}(id=${u.id})}"
-               class="btn-ghost" style="font-size:.85rem;">
-                Ver universidad →
-            </a>
+    <div class="grid">
+        <div class="card" th:each="uni : ${universities}">
+            <h3 style="font-size: 1.1rem; margin-bottom: 0.3rem;" th:text="${uni.name}">UPC</h3>
+            <p style="color: #64748b; font-size: 0.9rem; margin-bottom: 1rem;" th:text="${uni.city}">Lima</p>
+            <a th:href="@{/universities/detail/{id}(id=${uni.id})}" class="btn-ghost">Ver detalles →</a>
         </div>
-    </div>
-
-    <!-- 🆕 Cursos recomendados -->
-    <div class="section-title" style="margin-top:2rem;">
-        <h2>📚 Cursos recomendados para esta carrera</h2>
-    </div>
-
-    <div th:if="${courses.isEmpty()}" class="empty-state">
-        <p>No hay cursos específicos para esta área todavía.</p>
-    </div>
-
-    <div th:unless="${courses.isEmpty()}"
-         style="display:grid; grid-template-columns:repeat(auto-fill, minmax(280px, 1fr)); gap:1rem;">
-        <div th:each="c : ${courses}" class="card">
-            <h3 style="font-size:1rem; color:#0f172a; margin-bottom:.4rem;" th:text="${c.title}"></h3>
-            <p style="font-size:.85rem; color:#64748b;"><strong>Proveedor:</strong> <span th:text="${c.provider}"></span></p>
-            <p style="font-size:.85rem; color:#64748b;"><strong>Skill:</strong> <span th:text="${c.skill}"></span></p>
-            <p style="font-size:.85rem; color:#64748b; margin-bottom:.5rem;">
-                <strong>Duración:</strong> <span th:text="${c.durationHours}">40</span>h
-            </p>
-            <a th:href="${c.url}" target="_blank" class="btn-primary"
-               style="font-size:.85rem; padding:.5rem 1rem;">Ir al curso →</a>
+        <div class="empty-state" th:if="${#lists.isEmpty(universities)}">
+            <p>No hay universidades registradas para esta área.</p>
         </div>
-    </div>
-
-    <div style="display:flex; gap:1rem; margin-top:2rem; flex-wrap:wrap;">
-        <form th:action="@{/student/favorites/add/{id}(id=${career.id})}" method="post"
-              style="display:inline"
-              th:if="${#authorization.expression('hasRole(''ESTUDIANTE'')')}">
-            <button type="submit" class="btn-primary">⭐ Agregar a favoritos</button>
-        </form>
-
-        <a th:href="@{/careers/edit/{id}(id=${career.id})}" class="btn-primary"
-           th:if="${#authorization.expression('hasRole(''ADMIN'')')}">✏️ Editar</a>
-
-        <a th:href="@{/careers}" class="btn-secondary">Volver</a>
     </div>
 
 </main>
 
+<script>
+    document.addEventListener("htmx:beforeRequest", function(evt) {
+        var spinner = evt.detail.elt.querySelector('.htmx-indicator');
+        if(spinner) spinner.style.display = 'inline-block';
+    });
+    document.addEventListener("htmx:afterRequest", function(evt) {
+        var spinner = evt.detail.elt.querySelector('.htmx-indicator');
+        if(spinner) spinner.style.display = 'none';
+    });
+    document.body.addEventListener("htmx:afterSwap", function(evt) {
+        var elements = evt.detail.target.querySelectorAll('.ai-markdown-content');
+        elements.forEach(function(el) {
+            el.innerHTML = marked.parse(el.innerText);
+        });
+    });
+</script>
 </body>
 </html>

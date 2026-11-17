@@ -7,10 +7,11 @@ import java.util.Optional;
 public interface UniversityService {
     List<University> findAll();
     Optional<University> findById(Long id);
-    University save(University u);
-    University update(Long id, University u);
+    University save(University university);
+    University update(Long id, University university);
     void delete(Long id);
-
-    // 🆕 Buscar universidades por facultad/área
-    List<University> findByFacultiesContaining(String area);
+    List<University> findAllById(List<Long> ids);
+    
+    // NUEVO MÉTODO
+    List<University> findByFacultiesContaining(String faculties);
 }

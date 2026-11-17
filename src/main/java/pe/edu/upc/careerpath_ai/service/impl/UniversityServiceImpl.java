@@ -2,7 +2,6 @@ package pe.edu.upc.careerpath_ai.service.impl;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import pe.edu.upc.careerpath_ai.exception.RecursoNoEncontradoException;
 import pe.edu.upc.careerpath_ai.model.University;
 import pe.edu.upc.careerpath_ai.repository.UniversityRepository;
 import pe.edu.upc.careerpath_ai.service.UniversityService;
@@ -16,29 +15,35 @@ public class UniversityServiceImpl implements UniversityService {
 
     private final UniversityRepository universityRepository;
 
-    @Override public List<University> findAll() { return universityRepository.findAll(); }
-    @Override public Optional<University> findById(Long id) { return universityRepository.findById(id); }
-    @Override public University save(University u) { return universityRepository.save(u); }
+    @Override
+    public List<University> findAll() { return universityRepository.findAll(); }
 
     @Override
-    public University update(Long id, University u) {
+    public Optional<University> findById(Long id) { return universityRepository.findById(id); }
+
+    @Override
+    public University save(University university) { return universityRepository.save(university); }
+
+    @Override
+    public University update(Long id, University university) {
         University existing = universityRepository.findById(id)
-                .orElseThrow(() -> new RecursoNoEncontradoException("Universidad no encontrada"));
-        existing.setName(u.getName());
-        existing.setWebsite(u.getWebsite());
-        existing.setCity(u.getCity());
-        existing.setLogoUrl(u.getLogoUrl());
-        existing.setDescription(u.getDescription());
-        existing.setFaculties(u.getFaculties());
+                .orElseThrow(() -> new RuntimeException("Universidad no encontrada"));
+        existing.setName(university.getName());
+        // Agrega aquí los demás campos de tu universidad (direccion, telefono, etc.)
         return universityRepository.save(existing);
     }
+
     @Override
-    public List<University> findByFacultiesContaining(String area) {
-        if (area == null || area.isBlank()) return List.of();
-        return universityRepository.findAll().stream()
-                .filter(u -> u.getFaculties() != null
-                        && u.getFaculties().toLowerCase().contains(area.toLowerCase()))
-                .toList();
+    public void delete(Long id) { universityRepository.deleteById(id); }
+
+    @Override
+    public List<University> findAllById(List<Long> ids) {
+        return universityRepository.findAllById(ids);
     }
-    @Override public void delete(Long id) { universityRepository.deleteById(id); }
+
+    // NUEVO MÉTODO IMPLEMENTADO
+    @Override
+    public List<University> findByFacultiesContaining(String faculties) {
+        return universityRepository.findByFacultiesContaining(faculties);
+    }
 }

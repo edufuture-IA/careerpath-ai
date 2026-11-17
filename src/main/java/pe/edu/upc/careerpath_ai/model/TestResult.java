@@ -32,9 +32,15 @@ public class TestResult {
     @Column(length = 1000)
     private String recommendedCareers;
 
-    // 🆕 Token para compartir
-    @Column(unique = true, length = 36)
+    @Column(unique = true)
     private String shareToken;
+
+    @Column(length = 2000)
+    private String aiAnalysis;
+
+    // 🆕 NUEVO CAMPO PARA EL ROADMAP
+    @Column(length = 2500)
+    private String aiRoadmap;
 
     @OneToMany(mappedBy = "testResult", cascade = CascadeType.ALL,
                orphanRemoval = true, fetch = FetchType.LAZY)

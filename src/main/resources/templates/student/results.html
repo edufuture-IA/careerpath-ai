@@ -3,185 +3,99 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mis resultados — CareerPath AI</title>
+    <title>Mis Resultados - CareerPath AI</title>
     <link rel="stylesheet" th:href="@{/css/app.css}">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- HTMX y Marked.js -->
+    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 </head>
 <body>
 
 <div th:replace="~{fragments/navbar :: navbar}"></div>
 
-<main class="app-container fade-in">
+<main class="app-container fade-in" style="max-width:900px;">
 
-    <div class="result-header">
+    <!-- Encabezado con tu clase .result-header -->
+    <div class="result-header text-center">
+        <h1>Resultados del Test</h1>
+        <p>Realizado el <span th:text="${#temporals.format(result.completedAt, 'dd/MM/yyyy')}"></span></p>
+        <div class="top-area" th:text="${result.topArea}">Ingeniería</div>
         <p>Tu área predominante</p>
-        <div class="top-area" th:text="${result.topArea}"></div>
-        <p th:text="'Test completado el ' + ${#temporals.format(result.completedAt, 'dd/MM/yyyy HH:mm')}"></p>
     </div>
 
     <div class="grid-2">
-
+        <!-- Puntajes -->
         <div class="chart-card">
-            <h3>📊 Puntajes por área</h3>
-            <canvas id="chartAreas"></canvas>
+            <h3>📊 Puntajes por Área</h3>
+            <div th:each="entry : ${areaScores}" style="margin-bottom:1.2rem;">
+                <div style="display:flex; justify-content:space-between; font-weight:600; margin-bottom:.4rem;">
+                    <span th:text="${entry.key}">Ingeniería</span>
+                    <span th:text="${entry.value} + ' pts'">15 pts</span>
+                </div>
+                <div class="progress-bar" style="margin-bottom:0;">
+                    <!-- Nota: Asumiendo un máximo de 25 pts para el ejemplo -->
+                    <div class="progress-fill" th:style="'width: ' + ${(entry.value * 100) / 25} + '%'"></div>
+                </div>
+            </div>
         </div>
 
+        <!-- Carreras -->
         <div class="career-list-card">
-            <h3>🎯 Carreras recomendadas</h3>
-            <div class="career-item"
-                 th:each="c, iter : ${recommended}"
-                 th:with="idx=${iter.index + 1}">
-                <div class="career-rank"
-                     th:classappend="${idx == 1 ? 'top-1' : (idx == 2 ? 'top-2' : (idx == 3 ? 'top-3' : ''))}"
-                     th:text="${idx}">1</div>
-                <div class="career-name" th:text="${c}"></div>
+            <h3>🎯 Carreras Recomendadas</h3>
+            <div th:each="career, iter : ${recommended}" class="career-item">
+                <div class="career-rank" 
+                     th:classappend="${iter.index == 0 ? 'top-1' : (iter.index == 1 ? 'top-2' : (iter.index == 2 ? 'top-3' : ''))}"
+                     th:text="${iter.count}">1</div>
+                <div class="career-name" th:text="${career}">Ingeniería de Sistemas</div>
             </div>
         </div>
     </div>
 
-    <!-- ============================================ -->
-    <!-- BOTONES (incluye el de compartir)           -->
-    <!-- ============================================ -->
-    <div style="display:flex; gap:1rem; justify-content:center; margin-top:2rem; flex-wrap:wrap;">
-        <a th:href="@{/student/dashboard}" class="btn-secondary">← Volver al panel</a>
-        <a th:href="@{/student/test}" class="btn-primary">🔄 Hacer otro test</a>
+    <!-- Análisis IA -->
+    <div class="card" th:if="${result.aiAnalysis != null}" style="margin-top:1.5rem;">
+        <h3 style="margin-bottom:1rem; color:#0f172a;">🤖 Análisis de la IA</h3>
+        <p class="fst-italic" style="color:#475569;" th:text="${result.aiAnalysis}"></p>
+    </div>
 
-        <!-- 🆕 Compartir -->
-        <button type="button" onclick="shareResult()" class="btn-primary"
-                style="background:linear-gradient(135deg, #10b981, #059669);">
-            🔗 Compartir resultado
+    <!-- ROADMAP IA (HTMX) -->
+    <div class="card card-soft" style="margin-top:2rem; text-align:center; padding:3rem 1.5rem;">
+        <h2 style="font-size:1.4rem; color:#4f46e5; margin-bottom:.5rem;">🗺️ Tu Plan de Acción Personalizado</h2>
+        <p style="color:#64748b; margin-bottom:1.5rem;">Genera una ruta de aprendizaje de 3 pasos basada en tu perfil.</p>
+        
+        <button hx-get="/student/results/{id}/ai-roadmap" 
+                th:hx-get="@{/student/results/{id}/ai-roadmap(id=${result.id})}"
+                hx-target="#roadmap-container"
+                hx-indicator="#spinner-roadmap"
+                class="btn-primary">
+            🚀 Generar mi plan de acción
+            <span id="spinner-roadmap" class="htmx-indicator" style="display:none;">⏳</span>
         </button>
+        
+        <div id="roadmap-container" style="text-align:left; margin-top:1.5rem;"></div>
     </div>
 
-    <!-- ============================================ -->
-    <!-- MODAL DE COMPARTIR                          -->
-    <!-- ============================================ -->
-    <div id="shareModal"
-         style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:999; align-items:center; justify-content:center;">
-        <div style="background:#fff; padding:2rem; border-radius:16px; max-width:500px; width:90%; box-shadow:0 20px 60px rgba(0,0,0,0.3);">
-            <h2 style="color:#0f172a; margin-bottom:1rem;">🔗 Enlace para compartir</h2>
-            <p style="color:#64748b; margin-bottom:1rem; font-size:.9rem;">
-                Cualquier persona con este enlace podrá ver tus resultados (no podrá editarlos).
-            </p>
-            <input type="text" id="shareUrl" readonly
-                   style="width:100%; padding:.75rem; border:1.5px solid #e2e8f0; border-radius:8px; font-size:.85rem; margin-bottom:1rem; background:#f8fafc;">
-            <div style="display:flex; gap:.5rem; justify-content:flex-end;">
-                <button type="button" onclick="closeShareModal()" class="btn-secondary">Cerrar</button>
-                <button type="button" onclick="copyShareUrl()" class="btn-primary">📋 Copiar</button>
-            </div>
-        </div>
+    <div style="text-align:center; margin-top:2rem;">
+        <a th:href="@{/student/dashboard}" class="btn-secondary">Volver al Dashboard</a>
     </div>
 
 </main>
 
-<!-- ============================================ -->
-<!-- SCRIPT DE CHART.JS                          -->
-<!-- ============================================ -->
-<script th:inline="javascript">
-    const labels = /*[[${areaScores.keySet()}]]*/ [];
-    const values = /*[[${areaScores.values()}]]*/ [];
-
-    new Chart(document.getElementById('chartAreas'), {
-        type: 'bar',
-        data: {
-            labels: labels,
-            datasets: [{
-                label: 'Puntaje',
-                data: values,
-                backgroundColor: [
-                    'rgba(79, 70, 229, 0.85)',
-                    'rgba(124, 58, 237, 0.85)',
-                    'rgba(236, 72, 153, 0.85)',
-                    'rgba(20, 184, 166, 0.85)',
-                    'rgba(245, 158, 11, 0.85)'
-                ],
-                borderRadius: 10,
-                borderSkipped: false
-            }]
-        },
-        options: {
-            responsive: true,
-            plugins: {
-                legend: { display: false },
-                tooltip: {
-                    backgroundColor: '#0f172a',
-                    padding: 12,
-                    titleFont: { size: 13 },
-                    bodyFont: { size: 13 }
-                }
-            },
-            scales: {
-                y: {
-                    beginAtZero: true,
-                    grid: { color: '#f1f5f9' },
-                    ticks: { color: '#64748b' }
-                },
-                x: {
-                    grid: { display: false },
-                    ticks: { color: '#64748b', font: { weight: 600 } }
-                }
-            }
-        }
+<script>
+    document.addEventListener("htmx:beforeRequest", function(evt) {
+        var spinner = evt.detail.elt.querySelector('.htmx-indicator');
+        if(spinner) spinner.style.display = 'inline-block';
+    });
+    document.addEventListener("htmx:afterRequest", function(evt) {
+        var spinner = evt.detail.elt.querySelector('.htmx-indicator');
+        if(spinner) spinner.style.display = 'none';
+    });
+    document.body.addEventListener("htmx:afterSwap", function(evt) {
+        var elements = evt.detail.target.querySelectorAll('.ai-markdown-content');
+        elements.forEach(function(el) {
+            el.innerHTML = marked.parse(el.innerText);
+        });
     });
 </script>
-
-<!-- ============================================ -->
-<!-- SCRIPT DE COMPARTIR                          -->
-<!-- ============================================ -->
-<script th:inline="javascript">
-    const resultId = /*[[${result.id}]]*/ 0;
-
-    async function shareResult() {
-        try {
-            const response = await fetch(`/student/results/${resultId}/share`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' }
-            });
-
-            if (!response.ok) {
-                alert('Error al generar el enlace. Código: ' + response.status);
-                return;
-            }
-
-            const data = await response.json();
-            const fullUrl = window.location.origin + data.url;
-            document.getElementById('shareUrl').value = fullUrl;
-            document.getElementById('shareModal').style.display = 'flex';
-
-        } catch (e) {
-            console.error(e);
-            alert('Error al generar el enlace. Intenta de nuevo.');
-        }
-    }
-
-    function copyShareUrl() {
-        const input = document.getElementById('shareUrl');
-        input.select();
-        input.setSelectionRange(0, 99999); // Móvil
-
-        try {
-            document.execCommand('copy');
-            alert('✅ Enlace copiado al portapapeles');
-        } catch (err) {
-            // Fallback con API moderna
-            navigator.clipboard.writeText(input.value).then(() => {
-                alert('✅ Enlace copiado al portapapeles');
-            }).catch(() => {
-                alert('⚠️ No se pudo copiar. Cópialo manualmente.');
-            });
-        }
-    }
-
-    function closeShareModal() {
-        document.getElementById('shareModal').style.display = 'none';
-    }
-
-    // Cerrar modal al hacer clic fuera
-    document.getElementById('shareModal').addEventListener('click', function(e) {
-        if (e.target === this) closeShareModal();
-    });
-</script>
-
 </body>
 </html>

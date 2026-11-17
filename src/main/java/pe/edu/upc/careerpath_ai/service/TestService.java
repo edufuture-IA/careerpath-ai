@@ -14,8 +14,9 @@ public interface TestService {
     TestResult findById(Long id);
     Map<String, Integer> parseAreaScores(String csv);
     List<String> parseRecommendedCareers(String csv);
-
-    // 🆕 Compartir
     String generateShareToken(Long resultId);
     Optional<TestResult> findByShareToken(String token);
+    
+    // 🆕
+    TestResult save(TestResult result);
 }

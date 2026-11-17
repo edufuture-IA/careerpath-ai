@@ -3,6 +3,7 @@ package pe.edu.upc.careerpath_ai.model;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import lombok.*;
+import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "careers")
@@ -13,7 +14,7 @@ import lombok.*;
 public class Career {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY) // Postgres → BIGSERIAL
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @NotBlank(message = "El nombre es obligatorio")
@@ -29,5 +30,19 @@ public class Career {
     @Column(length = 500)
     private String requiredSkills;
 
-    private Double demandIndex;
+    @Column(nullable = false)
+    @Builder.Default
+    private Double demandIndex = 0.0;
+
+    private LocalDateTime demandIndexUpdatedAt;
+
+    @Column(length = 20)
+    private String demandIndexSource;
+
+    // 🆕 NUEVOS CAMPOS PARA IA
+    @Column(length = 2500)
+    private String aiDayInTheLife;
+
+    @Column(length = 1000)
+    private String aiSimpleExplanation;
 }

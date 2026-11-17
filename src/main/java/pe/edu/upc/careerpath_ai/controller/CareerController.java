@@ -4,17 +4,19 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import pe.edu.upc.careerpath_ai.model.Career;
+import pe.edu.upc.careerpath_ai.model.University;
 import pe.edu.upc.careerpath_ai.model.User;
+import pe.edu.upc.careerpath_ai.service.AIService;
 import pe.edu.upc.careerpath_ai.service.CareerService;
-import pe.edu.upc.careerpath_ai.service.CourseService;
 import pe.edu.upc.careerpath_ai.service.UniversityService;
 import pe.edu.upc.careerpath_ai.service.UserService;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Controller
@@ -25,53 +27,114 @@ public class CareerController {
     private final CareerService careerService;
     private final UserService userService;
     private final UniversityService universityService;
-    private final CourseService courseService;
+    private final AIService aiService;
 
-    // =====================================================
-    // LISTAR + BUSCAR
-    // =====================================================
     @GetMapping
-    public String list(Model model, Authentication auth,
-                       @RequestParam(required = false) String search) {
-
+    public String list(Model model, Authentication auth) {
         User user = userService.findByUsername(auth.getName())
                 .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
-
-        List<Career> careers = careerService.findAll();
-
-        // 🆕 Filtro por nombre
-        if (search != null && !search.isBlank()) {
-            String s = search.trim().toLowerCase();
-            careers = careers.stream()
-                    .filter(c -> c.getName().toLowerCase().contains(s)
-                            || (c.getArea() != null && c.getArea().toLowerCase().contains(s)))
-                    .toList();
-        }
-
         model.addAttribute("user", user);
-        model.addAttribute("careers", careers);
-        model.addAttribute("searchTerm", search);
+        model.addAttribute("careers", careerService.findAll());
         return "careers/list";
     }
 
-    // =====================================================
-    // CREAR
-    // =====================================================
-    @GetMapping("/new")
-    public String createForm(Model model, Authentication auth) {
+    @PostMapping("/compare")
+    public String compare(@RequestParam(value = "ids", required = false) List<Long> ids,
+                          Model model, RedirectAttributes redirectAttributes) {
+        if (ids == null || ids.size() < 2) {
+            redirectAttributes.addFlashAttribute("error",
+                    "⚠️ Debes seleccionar al menos 2 carreras para comparar.");
+            return "redirect:/careers";
+        }
+        List<Career> careersToCompare = careerService.findAllById(ids);
+        
+        if (careersToCompare.size() >= 2) {
+            String aiComparison = aiService.compareCareers(careersToCompare.get(0), careersToCompare.get(1));
+            model.addAttribute("aiComparison", aiComparison);
+        }
+
+        model.addAttribute("careers", careersToCompare);
+        return "careers/compare";
+    }
+
+    @GetMapping("/compare")
+    public String compareGet(RedirectAttributes redirectAttributes) {
+        redirectAttributes.addFlashAttribute("error",
+                "⚠️ Por favor, selecciona las carreras desde la lista para compararlas.");
+        return "redirect:/careers";
+    }
+
+    @GetMapping("/detail/{id}")
+    public String detail(@PathVariable Long id, Model model, Authentication auth) {
         User user = userService.findByUsername(auth.getName())
                 .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+
+        Career career = careerService.findByIdWithFreshDemand(id, 7);
+
+        List<University> universities = (career.getArea() == null)
+                ? List.of()
+                : universityService.findByFacultiesContaining(career.getArea());
+
+        if (!model.containsAttribute("courses")) {
+            model.addAttribute("courses", new ArrayList<>());
+        }
+
+        model.addAttribute("user", user);
+        model.addAttribute("career", career);
+        model.addAttribute("universities", universities);
+        return "careers/detail";
+    }
+
+    @GetMapping("/detail/{id}/ai-day")
+    public String getDayInTheLife(@PathVariable Long id, Model model) {
+        Career career = careerService.findById(id).orElseThrow();
+        
+        if (career.getAiDayInTheLife() == null || career.getAiDayInTheLife().isBlank()) {
+            String aiText = aiService.generateDayInTheLife(career);
+            
+            if (aiText != null && !aiText.startsWith("⚠️")) {
+                career.setAiDayInTheLife(aiText);
+                careerService.save(career);
+            }
+            model.addAttribute("aiContent", aiText);
+        } else {
+            model.addAttribute("aiContent", career.getAiDayInTheLife());
+        }
+        
+        return "fragments/ai-fragment :: response";
+    }
+
+    @GetMapping("/detail/{id}/ai-explain")
+    public String getSimpleExplanation(@PathVariable Long id, Model model) {
+        Career career = careerService.findById(id).orElseThrow();
+        
+        if (career.getAiSimpleExplanation() == null || career.getAiSimpleExplanation().isBlank()) {
+            String aiText = aiService.explainSimply(career);
+            
+            if (aiText != null && !aiText.startsWith("⚠️")) {
+                career.setAiSimpleExplanation(aiText);
+                careerService.save(career);
+            }
+            model.addAttribute("aiContent", aiText);
+        } else {
+            model.addAttribute("aiContent", career.getAiSimpleExplanation());
+        }
+        
+        return "fragments/ai-fragment :: response";
+    }
+
+    @GetMapping("/new")
+    public String createForm(Model model, Authentication auth) {
+        User user = userService.findByUsername(auth.getName()).orElseThrow();
         model.addAttribute("user", user);
         model.addAttribute("career", new Career());
         return "careers/form";
     }
 
     @PostMapping
-    public String save(@Valid @ModelAttribute Career career,
-                       BindingResult result, Model model, Authentication auth) {
+    public String save(@Valid @ModelAttribute Career career, BindingResult result, Model model, Authentication auth) {
         if (result.hasErrors()) {
-            User user = userService.findByUsername(auth.getName())
-                    .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+            User user = userService.findByUsername(auth.getName()).orElseThrow();
             model.addAttribute("user", user);
             return "careers/form";
         }
@@ -79,27 +142,19 @@ public class CareerController {
         return "redirect:/careers";
     }
 
-    // =====================================================
-    // EDITAR
-    // =====================================================
     @GetMapping("/edit/{id}")
     public String editForm(@PathVariable Long id, Model model, Authentication auth) {
-        User user = userService.findByUsername(auth.getName())
-                .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
-        Career career = careerService.findById(id)
-                .orElseThrow(() -> new RuntimeException("Carrera no encontrada"));
+        User user = userService.findByUsername(auth.getName()).orElseThrow();
+        Career career = careerService.findById(id).orElseThrow();
         model.addAttribute("user", user);
         model.addAttribute("career", career);
         return "careers/form";
     }
 
     @PostMapping("/update/{id}")
-    public String update(@PathVariable Long id,
-                         @Valid @ModelAttribute Career career,
-                         BindingResult result, Model model, Authentication auth) {
+    public String update(@PathVariable Long id, @Valid @ModelAttribute Career career, BindingResult result, Model model, Authentication auth) {
         if (result.hasErrors()) {
-            User user = userService.findByUsername(auth.getName())
-                    .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+            User user = userService.findByUsername(auth.getName()).orElseThrow();
             model.addAttribute("user", user);
             return "careers/form";
         }
@@ -107,42 +162,9 @@ public class CareerController {
         return "redirect:/careers";
     }
 
-    // =====================================================
-    // ELIMINAR
-    // =====================================================
     @GetMapping("/delete/{id}")
     public String delete(@PathVariable Long id) {
         careerService.delete(id);
         return "redirect:/careers";
-    }
-
-    // =====================================================
-    // DETALLE + universidades + cursos recomendados
-    // =====================================================
-    @GetMapping("/detail/{id}")
-    @Transactional(readOnly = true)
-    public String detail(@PathVariable Long id, Model model, Authentication auth) {
-        User user = userService.findByUsername(auth.getName())
-                .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
-
-        Career career = careerService.findById(id)
-                .orElseThrow(() -> new RuntimeException("Carrera no encontrada"));
-
-        // 🆕 Universidades que ofrecen esta área
-        List<pe.edu.upc.careerpath_ai.model.University> universities =
-                universityService.findByFacultiesContaining(career.getArea());
-
-        // 🆕 Cursos relacionados (por área y por skills)
-        List<pe.edu.upc.careerpath_ai.model.Course> courses =
-                courseService.findByAreaOrSkill(career.getArea(), career.getRequiredSkills());
-
-        // Limitar a los primeros 4 cursos
-        if (courses.size() > 4) courses = courses.subList(0, 4);
-
-        model.addAttribute("user", user);
-        model.addAttribute("career", career);
-        model.addAttribute("universities", universities);
-        model.addAttribute("courses", courses);
-        return "careers/detail";
     }
 }

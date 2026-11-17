@@ -5,6 +5,8 @@ import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotBlank;
 import pe.edu.upc.careerpath_ai.model.Career;
 
+import java.time.LocalDateTime;
+
 public record CareerDTO(
         Long id,
         @NotBlank(message = "El nombre es obligatorio") String name,
@@ -12,11 +14,14 @@ public record CareerDTO(
         String area,
         String requiredSkills,
         @DecimalMin(value = "0.0", message = "El índice mínimo es 0")
-        @DecimalMax(value = "1.0", message = "El índice máximo es 1") Double demandIndex) {
+        @DecimalMax(value = "1.0", message = "El índice máximo es 1") Double demandIndex,
+        LocalDateTime demandIndexUpdatedAt,
+        String demandIndexSource) {
 
     public static CareerDTO from(Career c) {
         return new CareerDTO(c.getId(), c.getName(), c.getDescription(), c.getArea(),
-                c.getRequiredSkills(), c.getDemandIndex());
+                c.getRequiredSkills(), c.getDemandIndex(),
+                c.getDemandIndexUpdatedAt(), c.getDemandIndexSource());
     }
 
     public Career toEntity() {

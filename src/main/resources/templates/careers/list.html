@@ -18,13 +18,17 @@
             <h1>Catálogo de carreras</h1>
             <p>Explora las carreras disponibles</p>
         </div>
+        <!-- Botón de nueva carrera (solo ADMIN o DOCENTE) -->
         <a th:href="@{/careers/new}" class="btn-primary"
-           th:if="${#authorization.expression('hasRole(''ADMIN'')')}">
+           th:if="${#authorization.expression('hasAnyRole(''ADMIN'', ''DOCENTE'')')}">
             + Nueva carrera
         </a>
     </div>
 
-    <!-- 🆕 Buscador -->
+    <!-- Alerta de error (si intentan comparar sin seleccionar o recargan la página) -->
+    <div th:if="${error}" class="alert alert-error" th:text="${error}" style="margin-bottom: 1rem;"></div>
+
+    <!-- Buscador -->
     <div class="card" style="margin-bottom:1.5rem;">
         <form method="get" th:action="@{/careers}"
               style="display:flex; gap:1rem; flex-wrap:wrap; align-items:end;">
@@ -46,58 +50,93 @@
         <p th:unless="${searchTerm}">No hay carreras registradas.</p>
     </div>
 
-    <div th:unless="${#lists.isEmpty(careers)}" class="table-card">
-        <table class="table">
-            <thead>
-            <tr>
-                <th>#</th>
-                <th>Nombre</th>
-                <th>Área</th>
-                <th>Demanda</th>
-                <th style="text-align:right;">Acciones</th>
-            </tr>
-            </thead>
-            <tbody>
-            <tr th:each="c : ${careers}">
-                <td style="color:#94a3b8; font-weight:600;" th:text="${c.id}"></td>
-                <td style="font-weight:600;" th:text="${c.name}"></td>
-                <td><span class="badge badge-blue" th:text="${c.area}"></span></td>
-                <td>
-                    <span class="badge"
-                          th:classappend="${c.demandIndex >= 0.85 ? 'badge-green' : (c.demandIndex >= 0.7 ? 'badge-orange' : 'badge-gray')}"
-                          th:text="${#numbers.formatDecimal(c.demandIndex, 1, 2)}"></span>
-                </td>
-                <td style="text-align:right;">
-                    <div class="cell-actions" style="justify-content:flex-end; gap:.4rem;">
-                        <a th:href="@{/careers/detail/{id}(id=${c.id})}" class="btn-ghost">Ver</a>
+    <!-- ENVOLVEMOS LA TABLA EN UN FORMULARIO POST PARA LA COMPARACIÓN -->
+    <form id="compareForm" th:action="@{/careers/compare}" method="post" th:unless="${#lists.isEmpty(careers)}">
+        
+        <div class="table-card">
+            <table class="table">
+                <thead>
+                <tr>
+                    <th style="width: 50px;">Sel.</th> <!-- Columna de selección -->
+                    <th>#</th>
+                    <th>Nombre</th>
+                    <th>Área</th>
+                    <th>Demanda</th>
+                    <th style="text-align:right;">Acciones</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="c : ${careers}">
+                    <!-- Checkbox para comparar -->
+                    <td>
+                        <input type="checkbox" name="ids" th:value="${c.id}" style="width: 18px; height: 18px; cursor: pointer;">
+                    </td>
+                    <td style="color:#94a3b8; font-weight:600;" th:text="${c.id}"></td>
+                    <td style="font-weight:600;" th:text="${c.name}"></td>
+                    <td><span class="badge badge-blue" th:text="${c.area}"></span></td>
+                    <td>
+                        <span class="badge"
+                              th:classappend="${c.demandIndex >= 0.85 ? 'badge-green' : (c.demandIndex >= 0.7 ? 'badge-orange' : 'badge-gray')}"
+                              th:text="${#numbers.formatDecimal(c.demandIndex, 1, 2)}"></span>
+                    </td>
+                    <td style="text-align:right;">
+                        <div class="cell-actions" style="justify-content:flex-end; gap:.4rem;">
+                            <a th:href="@{/careers/detail/{id}(id=${c.id})}" class="btn-ghost">Ver</a>
 
-                        <form th:action="@{/student/favorites/add/{id}(id=${c.id})}" method="post"
-                              style="display:inline"
-                              th:if="${#authorization.expression('hasRole(''ESTUDIANTE'')')}">
-                            <button type="submit" class="btn-primary"
-                                    style="padding:.4rem .8rem; font-size:.85rem;">
+                            <!-- Botón de favorito (solo ESTUDIANTE) -->
+                            <button type="button" 
+                                    th:if="${#authorization.expression('hasRole(''ESTUDIANTE'')')}"
+                                    th:onclick="'document.getElementById(\'favForm-' + ${c.id} + '\').submit();'"
+                                    class="btn-primary" style="padding:.4rem .8rem; font-size:.85rem;">
                                 ⭐ Favorito
                             </button>
-                        </form>
 
-                        <th:block th:if="${#authorization.expression('hasRole(''ADMIN'')')}">
-                            <a th:href="@{/careers/edit/{id}(id=${c.id})}" class="btn-ghost">Editar</a>
-                            <a th:href="@{/careers/delete/{id}(id=${c.id})}"
-                               class="btn-danger"
-                               onclick="return confirm('¿Eliminar esta carrera?')">Eliminar</a>
-                        </th:block>
-                    </div>
-                </td>
-            </tr>
-            </tbody>
-        </table>
-    </div>
+                            <!-- Botones de edición (solo ADMIN/DOCENTE) -->
+                            <th:block th:if="${#authorization.expression('hasAnyRole(''ADMIN'', ''DOCENTE'')')}">
+                                <a th:href="@{/careers/edit/{id}(id=${c.id})}" class="btn-ghost">Editar</a>
+                                <a th:href="@{/careers/delete/{id}(id=${c.id})}"
+                                   class="btn-danger"
+                                   onclick="return confirm('¿Eliminar esta carrera?')">Eliminar</a>
+                            </th:block>
+                        </div>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
 
-    <div style="margin-top:2rem; text-align:center;">
-        <a th:href="@{/careers/compare}" class="btn-primary">⚖️ Comparar carreras</a>
+        <!-- Botón de Comparar (type="button" para que el JS controle el envío) -->
+        <div style="margin-top:2rem; text-align:center;">
+            <button type="button" onclick="validarComparacion()" class="btn-primary">
+                ⚖️ Comparar carreras seleccionadas
+            </button>
+        </div>
+    </form>
+
+    <!-- Formularios ocultos para Favoritos (Evita formularios anidados que rompen el HTML) -->
+    <div style="display: none;" th:if="${#authorization.expression('hasRole(''ESTUDIANTE'')')}">
+        <form th:each="c : ${careers}" 
+              th:id="'favForm-' + ${c.id}" 
+              th:action="@{/student/favorites/add/{id}(id=${c.id})}" 
+              method="post">
+        </form>
     </div>
 
 </main>
+
+<!-- SCRIPT DE VALIDACIÓN PARA LA COMPARACIÓN -->
+<script>
+    function validarComparacion() {
+        const seleccionados = document.querySelectorAll('input[name="ids"]:checked');
+        
+        if (seleccionados.length < 2) {
+            alert("⚠️ Por favor, selecciona al menos 2 carreras para poder compararlas.");
+            return; 
+        }
+        
+        document.getElementById('compareForm').submit();
+    }
+</script>
 
 </body>
 </html>
