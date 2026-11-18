@@ -3,6 +3,7 @@ package pe.edu.upc.careerpath_ai.repository;
 import org.springframework.data.jpa.repository.JpaRepository;
 import pe.edu.upc.careerpath_ai.model.User;
 import pe.edu.upc.careerpath_ai.model.Role;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -10,4 +11,5 @@ public interface UserRepository extends JpaRepository<User, Long> {
     Optional<User> findByUsername(String username);
     List<User> findByRole(Role role);
     boolean existsByUsername(String username);
+    long countByRoleAndCreatedAtBetween(Role role, LocalDateTime from, LocalDateTime to);
 }
