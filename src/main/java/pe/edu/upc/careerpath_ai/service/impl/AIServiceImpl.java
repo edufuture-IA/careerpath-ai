@@ -13,6 +13,8 @@ import pe.edu.upc.careerpath_ai.model.TestResult;
 import pe.edu.upc.careerpath_ai.repository.TestResultRepository;
 import pe.edu.upc.careerpath_ai.service.AIService;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
@@ -41,7 +43,7 @@ public class AIServiceImpl implements AIService {
     private final RestTemplate restTemplate;
     private final TestResultRepository testResultRepository;
 
-    private static final Pattern NUMBER_PATTERN = Pattern.compile("(\\d+(?:[.,]\\d+)?)");
+    private static final Pattern NUMBER_PATTERN = Pattern.compile("\\b\\d{1,2}\\b");
 
     @Override
     public String generateAnalysis(TestResult result) {
@@ -76,23 +78,28 @@ public class AIServiceImpl implements AIService {
     @Override
     public Double estimateDemandIndex(Career career) {
         String found = searchWeb("demanda laboral empleabilidad " + career.getName() + " Perú");
-        String sources = found.isBlank() ? "" : "Usa esta información encontrada en internet:\n" + found;
+        if (found.isBlank()) {
+            log.warn("Sin datos de internet para {}: no se estima la demanda", career.getName());
+            return null;
+        }
         String prompt = """
-                Eres un analista de mercado laboral peruano. Estima el índice de demanda
-                de la carrera "%s" (área: %s) en Perú para el año en curso.
-                Considera empleabilidad, ofertas en portales laborales y crecimiento sectorial.
+                Eres un analista del mercado laboral peruano. Usando SOLO la información de internet de abajo, califica la carrera "%s" (área: %s) en Perú con cuatro números enteros del 1 al 10:
+                1) empleabilidad: 1 = casi no hay trabajo, 5 = hay trabajo regular, 10 = sobran ofertas.
+                2) salario: 1 = sueldos muy bajos, 5 = sueldos medios, 10 = sueldos muy altos.
+                3) crecimiento: 1 = el sector se reduce, 5 = estable, 10 = crece muy rápido en los próximos 5 años.
+                4) poca competencia: 1 = hay demasiados profesionales para pocos puestos, 10 = faltan profesionales.
+                Si la información no dice nada sobre un criterio, usa 5.
+                Información de internet:
                 %s
-                Devuelve SOLO un número decimal entre 0.00 y 1.00 (por ejemplo: 0.82).
-                No agregues texto, ni comillas, ni explicación.
+                Responde SOLO los cuatro números separados por comas, en ese orden, sin texto.
                 """.formatted(career.getName(),
-                career.getArea() == null ? "General" : career.getArea(), sources);
-        String raw = callOllamaAPI(prompt);
-        return extractDouble(raw);
+                career.getArea() == null ? "General" : career.getArea(), found);
+        return scoresToIndex(callOllamaAPI(prompt, 0.0));
     }
 
     private String searchWeb(String query) {
         if (searchApiKey == null || searchApiKey.isBlank()) {
-            log.warn("OLLAMA_API_KEY no configurada: la demanda se estima sin búsqueda web");
+            log.warn("OLLAMA_API_KEY no configurada: no se puede buscar en internet");
             return "";
         }
         HttpHeaders headers = new HttpHeaders();
@@ -164,31 +171,29 @@ public class AIServiceImpl implements AIService {
         return callOllamaAPI(prompt);
     }
 
-    private Double extractDouble(String raw) {
-        if (raw == null || raw.startsWith("⚠️") || raw.startsWith("Error") || raw.startsWith("No se pudo")) return null;
+    private Double scoresToIndex(String raw) {
+        if (raw == null || raw.startsWith("⚠️")) return null;
+        List<Integer> scores = new ArrayList<>();
         Matcher m = NUMBER_PATTERN.matcher(raw);
-        if (!m.find()) return null;
-        try {
-            double v = Double.parseDouble(m.group(1).replace(",", "."));
-            if (v > 1.0 && v <= 100.0) v = v / 100.0;
-            return Math.max(0.0, Math.min(1.0, v));
-        } catch (NumberFormatException e) {
-            return null;
-        }
+        while (m.find() && scores.size() < 4) scores.add(Integer.parseInt(m.group()));
+        if (scores.size() < 4 || scores.stream().anyMatch(v -> v < 1 || v > 10)) return null;
+        return Math.round(scores.stream().mapToInt(Integer::intValue).sum() / 40.0 * 100) / 100.0;
+    }
+
+    private String callOllamaAPI(String prompt) {
+        return callOllamaAPI(prompt, null);
     }
 
     @SuppressWarnings("unchecked")
-    private String callOllamaAPI(String prompt) {
+    private String callOllamaAPI(String prompt, Double temperature) {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
         headers.setBearerAuth(apiKey);
 
-        Map<String, Object> body = Map.of(
-                "model", modelName,
-                "messages", List.of(
-                        Map.of("role", "user", "content", prompt)
-                )
-        );
+        Map<String, Object> body = new HashMap<>();
+        body.put("model", modelName);
+        body.put("messages", List.of(Map.of("role", "user", "content", prompt)));
+        if (temperature != null) body.put("temperature", temperature);
 
         HttpEntity<Map<String, Object>> request = new HttpEntity<>(body, headers);
         

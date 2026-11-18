@@ -58,7 +58,7 @@
             <div class="card text-center" style="margin-bottom: 1.5rem;">
                 <h3 style="font-size: 1rem; color: #64748b;">Índice de Demanda</h3>
                 <div style="font-size: 3rem; font-weight: 800; color: #10b981; margin: 0.5rem 0;"
-                     th:text="${#numbers.formatDecimal(career.demandIndex * 100, 1, 0)} + '%'">88%</div>
+                     th:text="${career.demandIndexSource == 'PENDING' ? 'Pendiente' : #numbers.formatDecimal(career.demandIndex * 100, 1, 0) + '%'}">88%</div>
                 
                 <span th:if="${career.demandIndexSource == 'AI_GEMINI'}" class="badge badge-green">
                     🤖 Estimado por IA

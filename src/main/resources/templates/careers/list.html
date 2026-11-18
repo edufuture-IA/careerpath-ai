@@ -76,8 +76,8 @@
                     <td><span class="badge badge-blue" th:text="${c.area}"></span></td>
                     <td>
                         <span class="badge"
-                              th:classappend="${c.demandIndex >= 0.85 ? 'badge-green' : (c.demandIndex >= 0.7 ? 'badge-orange' : 'badge-gray')}"
-                              th:text="${#numbers.formatDecimal(c.demandIndex, 1, 2)}"></span>
+                              th:classappend="${c.demandIndexSource == 'PENDING' ? 'badge-gray' : (c.demandIndex >= 0.85 ? 'badge-green' : (c.demandIndex >= 0.7 ? 'badge-orange' : 'badge-gray'))}"
+                              th:text="${c.demandIndexSource == 'PENDING' ? 'Pendiente' : #numbers.formatDecimal(c.demandIndex, 1, 2)}"></span>
                     </td>
                     <td style="text-align:right;">
                         <div class="cell-actions" style="justify-content:flex-end; gap:.4rem;">
