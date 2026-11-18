@@ -48,6 +48,7 @@ public class SecurityConfig {
                 .accessDeniedHandler(RestSecurityHandlers.accessDeniedHandler()))
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/api/auth/login", "/api/auth/register").permitAll()
+                .requestMatchers(HttpMethod.DELETE, "/api/users/me").hasRole("ESTUDIANTE")
                 .requestMatchers("/api/users/**").hasAnyRole("DOCENTE", "ADMIN")
                 .anyRequest().authenticated())
             .formLogin(AbstractHttpConfigurer::disable)

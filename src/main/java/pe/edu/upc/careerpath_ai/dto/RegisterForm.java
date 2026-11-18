@@ -15,7 +15,7 @@ public class RegisterForm {
     private String username;
 
     @NotBlank
-    @Size(min = 6, message = "Mínimo 6 caracteres")
+    @Size(min = 8, message = "Mínimo 8 caracteres")
     private String password;
 
     private Role role;

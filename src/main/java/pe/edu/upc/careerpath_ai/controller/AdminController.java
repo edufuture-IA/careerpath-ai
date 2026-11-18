@@ -70,7 +70,7 @@ public class AdminController {
         activityLogService.log("DELETE_USER",
                 "Eliminó usuario: " + user.getUsername(),
                 auth.getName(), "ADMIN", request.getRemoteAddr());
-        userRepository.deleteById(id);
+        userService.delete(id);
         return "redirect:/admin/users?deleted";
     }
 
