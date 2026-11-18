@@ -34,10 +34,10 @@ public class AIServiceImpl implements AIService {
     @Value("${gemini.api.model:llama3.2}")
     private String modelName;
 
-    @Value("${ollama.search.url:https://ollama.com/api/web_search}")
+    @Value("${search.url:https://api.tavily.com/search}")
     private String searchUrl;
 
-    @Value("${ollama.search.api-key:}")
+    @Value("${search.api-key:}")
     private String searchApiKey;
 
     private final RestTemplate restTemplate;
@@ -99,7 +99,7 @@ public class AIServiceImpl implements AIService {
 
     private String searchWeb(String query) {
         if (searchApiKey == null || searchApiKey.isBlank()) {
-            log.warn("OLLAMA_API_KEY no configurada: no se puede buscar en internet");
+            log.warn("TAVILY_API_KEY no configurada: no se puede buscar en internet");
             return "";
         }
         HttpHeaders headers = new HttpHeaders();
