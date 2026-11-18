@@ -4,8 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Comparar Carreras - CareerPath AI</title>
+    
+    <!-- Tu CSS principal -->
     <link rel="stylesheet" th:href="@{/css/app.css}">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Librería para convertir Markdown a HTML -->
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 </head>
 <body>
@@ -66,16 +70,28 @@
             <div class="metric-icon" style="background: linear-gradient(135deg, #4f46e5, #7c3aed); color: white; box-shadow: none;">🤖</div>
             <h2 style="font-size: 1.2rem; margin: 0; color: #0f172a;">Veredicto del Orientador IA</h2>
         </div>
-        <div class="ai-markdown-content" style="font-size: 1.05rem; color: #334155; line-height: 1.7;" th:text="${aiComparison}"></div>
+        
+        <!-- Texto crudo de la IA (oculto) -->
+        <div id="aiComparisonText" th:text="${aiComparison}" style="display:none;"></div>
+        
+        <!-- Aquí se inyectará el HTML con viñetas y negritas -->
+        <div id="aiComparisonHtml" class="ai-verdict"></div>
     </div>
 
 </main>
 
+<!-- Script para procesar el Markdown -->
 <script>
     document.addEventListener("DOMContentLoaded", function() {
-        document.querySelectorAll('.ai-markdown-content').forEach(function(el) {
-            el.innerHTML = marked.parse(el.innerText);
-        });
+        var rawTextDiv = document.getElementById('aiComparisonText');
+        var htmlDiv = document.getElementById('aiComparisonHtml');
+        
+        if (rawTextDiv && htmlDiv) {
+            var rawText = rawTextDiv.innerText || rawTextDiv.textContent;
+            // Convierte los asteriscos de la IA en etiquetas HTML (strong, li, p)
+            var parsedHtml = marked.parse(rawText);
+            htmlDiv.innerHTML = parsedHtml;
+        }
     });
 </script>
 </body>

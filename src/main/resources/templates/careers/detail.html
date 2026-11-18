@@ -21,9 +21,9 @@
         <p><span class="badge badge-purple" th:text="${career.area}">Ingeniería</span></p>
     </div>
 
-    <div th:if="${param.favAdded}" class="alert alert-success">
-        ¡Carrera agregada a tus favoritos!
-    </div>
+    <!-- Alertas de Favoritos (Éxito o Error) -->
+    <div th:if="${error}" class="alert alert-error" th:text="${error}"></div>
+    <div th:if="${success}" class="alert alert-success" th:text="${success}"></div>
 
     <div class="grid-2">
         <!-- Columna Izquierda: Info -->
@@ -68,9 +68,20 @@
                    th:text="'Actualizado: ' + ${#temporals.format(career.demandIndexUpdatedAt, 'dd/MM/yyyy')}"></p>
             </div>
 
-            <form th:action="@{/student/favorites/add/{id}(id=${career.id})}" method="post">
-                <button type="submit" class="btn-primary" style="width: 100%;">❤️ Guardar en Favoritos</button>
-            </form>
+            <!-- Botón Dinámico de Favoritos -->
+            <div th:if="${!isFavorite}">
+                <form th:action="@{/student/favorites/add/{id}(id=${career.id})}" method="post">
+                    <button type="submit" class="btn-primary" style="width: 100%;">❤️ Guardar en Favoritos</button>
+                </form>
+            </div>
+
+            <div th:if="${isFavorite}">
+                <form th:action="@{/student/favorites/remove/{id}(id=${career.id})}" method="get">
+                    <button type="submit" class="btn-danger" style="width: 100%; padding: 0.75rem; border-radius: 10px; font-size: 0.95rem;">
+                        💔 Quitar de Favoritos
+                    </button>
+                </form>
+            </div>
         </div>
     </div>
 

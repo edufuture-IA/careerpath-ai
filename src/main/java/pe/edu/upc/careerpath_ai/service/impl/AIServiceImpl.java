@@ -23,11 +23,14 @@ import java.util.regex.Pattern;
 @Slf4j
 public class AIServiceImpl implements AIService {
 
-    @Value("${gemini.api.key}")
+    @Value("${gemini.api.key:}")
     private String apiKey;
 
-    @Value("${gemini.api.url}")
+    @Value("${gemini.api.url:http://localhost:11434/v1/chat/completions}")
     private String apiUrl;
+
+    @Value("${gemini.api.model:llama3.2}")
+    private String modelName;
 
     private final RestTemplate restTemplate;
     private final TestResultRepository testResultRepository;
@@ -46,7 +49,7 @@ public class AIServiceImpl implements AIService {
                 ". Las carreras recomendadas son: " + result.getRecommendedCareers() +
                 ". Escribe un párrafo motivador y profesional (máximo 120 palabras) explicando por qué estas carreras encajan con su perfil.";
         
-        String response = callGeminiAPI(prompt);
+        String response = callOllamaAPI(prompt);
         
         if (response != null && !response.startsWith("⚠️") && !response.startsWith("Error") && !response.startsWith("Lo siento")) {
             result.setAiAnalysis(response);
@@ -61,7 +64,7 @@ public class AIServiceImpl implements AIService {
                 " obtuvo como área principal " + result.getTopArea() +
                 " y se le recomendaron las carreras: " + result.getRecommendedCareers() +
                 ". Responde de forma amable, breve y útil a la siguiente pregunta del alumno: ";
-        return callGeminiAPI(systemPrompt + userMessage);
+        return callOllamaAPI(systemPrompt + userMessage);
     }
 
     @Override
@@ -74,7 +77,7 @@ public class AIServiceImpl implements AIService {
                 No agregues texto, ni comillas, ni explicación.
                 """.formatted(career.getName(),
                 career.getArea() == null ? "General" : career.getArea());
-        String raw = callGeminiAPI(prompt);
+        String raw = callOllamaAPI(prompt);
         return extractDouble(raw);
     }
 
@@ -83,7 +86,7 @@ public class AIServiceImpl implements AIService {
         String prompt = "Describe un día típico en la vida de un profesional de " + career.getName() + 
                 " en Perú. Menciónalo en formato de línea de tiempo (ej. 8:00 AM, 10:00 AM, etc.). " +
                 "Usa un tono inspirador, realista y atractivo para un joven de 17 años. Máximo 150 palabras.";
-        return callGeminiAPI(prompt);
+        return callOllamaAPI(prompt);
     }
 
     @Override
@@ -91,7 +94,7 @@ public class AIServiceImpl implements AIService {
         String prompt = "Explícame qué hace un profesional de " + career.getName() + 
                 " como si tuviera 15 años, usando analogías divertidas y un lenguaje muy sencillo. " +
                 "Evita tecnicismos. Máximo 80 palabras.";
-        return callGeminiAPI(prompt);
+        return callOllamaAPI(prompt);
     }
 
     @Override
@@ -101,15 +104,27 @@ public class AIServiceImpl implements AIService {
                 " y le recomendamos las carreras: " + result.getRecommendedCareers() + ". " +
                 "Actúa como un orientador vocacional. Arma una ruta de aprendizaje de 3 pasos (Paso 1, Paso 2, Paso 3). " +
                 "Dile qué debe aprender primero, qué curso tomar y qué habilidad blanda desarrollar. Sé muy práctico y usa viñetas.";
-        return callGeminiAPI(prompt);
+        return callOllamaAPI(prompt);
     }
 
+    // 🆕 Implementación corregida para múltiples carreras
     @Override
-    public String compareCareers(Career c1, Career c2) {
-        String prompt = "Compara las carreras de " + c1.getName() + " y " + c2.getName() + " en Perú. " +
+    public String compareCareers(List<Career> careers) {
+        if (careers == null || careers.size() < 2) {
+            return "⚠️ Se necesitan al menos 2 carreras para comparar.";
+        }
+
+        // Construimos una lista de nombres: "Carrera A, Carrera B, Carrera C"
+        StringBuilder nombres = new StringBuilder();
+        for (int i = 0; i < careers.size(); i++) {
+            nombres.append(careers.get(i).getName());
+            if (i < careers.size() - 1) nombres.append(", ");
+        }
+
+        String prompt = "Compara las siguientes carreras en Perú: " + nombres.toString() + ". " +
                 "Dime en 3 puntos clave: 1) Cuál tiene mejor futuro a 5 años, 2) Cuál es más difícil de estudiar, " +
-                "3) Un consejo para elegir entre ambas. Sé directo, objetivo y usa viñetas. Máximo 120 palabras.";
-        return callGeminiAPI(prompt);
+                "3) Un consejo para elegir entre ellas. Sé directo, objetivo y usa viñetas. Máximo 150 palabras.";
+        return callOllamaAPI(prompt);
     }
 
     private Double extractDouble(String raw) {
@@ -126,13 +141,16 @@ public class AIServiceImpl implements AIService {
     }
 
     @SuppressWarnings("unchecked")
-    private String callGeminiAPI(String prompt) {
+    private String callOllamaAPI(String prompt) {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
-        headers.set("X-goog-api-key", apiKey);
+        headers.setBearerAuth(apiKey);
 
         Map<String, Object> body = Map.of(
-                "contents", List.of(Map.of("parts", List.of(Map.of("text", prompt))))
+                "model", modelName,
+                "messages", List.of(
+                        Map.of("role", "user", "content", prompt)
+                )
         );
 
         HttpEntity<Map<String, Object>> request = new HttpEntity<>(body, headers);
@@ -141,23 +159,22 @@ public class AIServiceImpl implements AIService {
             ResponseEntity<Map> response = restTemplate.postForEntity(apiUrl, request, Map.class);
             Map<String, Object> responseBody = response.getBody();
             
-            if (responseBody != null && responseBody.containsKey("candidates")) {
-                List<Map<String, Object>> candidates = (List<Map<String, Object>>) responseBody.get("candidates");
-                Map<String, Object> content = (Map<String, Object>) candidates.get(0).get("content");
-                List<Map<String, Object>> parts = (List<Map<String, Object>>) content.get("parts");
-                return (String) parts.get(0).get("text");
+            if (responseBody != null && responseBody.containsKey("choices")) {
+                List<Map<String, Object>> choices = (List<Map<String, Object>>) responseBody.get("choices");
+                Map<String, Object> message = (Map<String, Object>) choices.get(0).get("message");
+                return (String) message.get("content");
             }
         } catch (HttpClientErrorException.TooManyRequests e) {
-            log.warn("Cuota de Gemini excedida (Error 429)");
+            log.warn("Cuota de Ollama excedida (Error 429)");
             return "⚠️ He alcanzado mi límite de consultas por hoy. Intenta de nuevo en unas horas.";
         } catch (HttpClientErrorException e) {
-            log.error("Error HTTP de Gemini: {} - {}", e.getStatusCode(), e.getResponseBodyAsString());
-            return "⚠️ Error de API de Google (" + e.getStatusCode() + "). Revisa tu API Key o la URL en application.properties.";
+            log.error("Error HTTP de Ollama: {} - {}", e.getStatusCode(), e.getResponseBodyAsString());
+            return "⚠️ Error de API (" + e.getStatusCode() + "). Revisa tu API Key o el modelo.";
         } catch (ResourceAccessException e) {
-            log.error("Error de red al conectar con Gemini: {}", e.getMessage());
-            return "⚠️ Error de red. Revisa tu conexión a internet o si tu red bloquea la API de Google.";
+            log.error("Error de red al conectar con Ollama: {}", e.getMessage());
+            return "⚠️ Error de red. Revisa tu conexión a internet.";
         } catch (Exception e) {
-            log.error("Error inesperado al llamar a Gemini", e);
+            log.error("Error inesperado al llamar a Ollama", e);
             return "⚠️ Error inesperado en el servidor: " + e.getMessage();
         }
         

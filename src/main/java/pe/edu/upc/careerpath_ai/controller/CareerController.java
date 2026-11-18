@@ -11,10 +11,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import pe.edu.upc.careerpath_ai.model.Career;
 import pe.edu.upc.careerpath_ai.model.University;
 import pe.edu.upc.careerpath_ai.model.User;
-import pe.edu.upc.careerpath_ai.service.AIService;
-import pe.edu.upc.careerpath_ai.service.CareerService;
-import pe.edu.upc.careerpath_ai.service.UniversityService;
-import pe.edu.upc.careerpath_ai.service.UserService;
+import pe.edu.upc.careerpath_ai.service.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -27,6 +24,7 @@ public class CareerController {
     private final CareerService careerService;
     private final UserService userService;
     private final UniversityService universityService;
+    private final FavoriteService favoriteService;
     private final AIService aiService;
 
     @GetMapping
@@ -49,7 +47,8 @@ public class CareerController {
         List<Career> careersToCompare = careerService.findAllById(ids);
         
         if (careersToCompare.size() >= 2) {
-            String aiComparison = aiService.compareCareers(careersToCompare.get(0), careersToCompare.get(1));
+            // 🆕 Le pasamos la lista completa a la IA
+            String aiComparison = aiService.compareCareers(careersToCompare);
             model.addAttribute("aiComparison", aiComparison);
         }
 
@@ -79,9 +78,13 @@ public class CareerController {
             model.addAttribute("courses", new ArrayList<>());
         }
 
+        boolean isFavorite = favoriteService.exists(user, career);
+
         model.addAttribute("user", user);
         model.addAttribute("career", career);
         model.addAttribute("universities", universities);
+        model.addAttribute("isFavorite", isFavorite);
+        
         return "careers/detail";
     }
 
