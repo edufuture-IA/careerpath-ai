@@ -22,7 +22,7 @@ class AdminDashboardFilterTest {
     private final UserService userService = mock(UserService.class);
     private final AdminController controller = new AdminController(
             userService, mock(QuestionService.class), mock(InstitutionService.class), mock(TestService.class),
-            mock(ActivityLogService.class), results, mock(CareerRepository.class), mock(ContactMessageRepository.class),
+            mock(ActivityLogService.class), mock(CareerService.class), results, mock(CareerRepository.class), mock(ContactMessageRepository.class),
             mock(NewsletterSubscriberRepository.class), users, null);
 
     @Test
