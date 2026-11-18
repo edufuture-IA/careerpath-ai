@@ -15,6 +15,10 @@ import pe.edu.upc.careerpath_ai.model.*;
 import pe.edu.upc.careerpath_ai.repository.*;
 import pe.edu.upc.careerpath_ai.service.*;
 
+import org.springframework.format.annotation.DateTimeFormat;
+
+import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -40,11 +44,27 @@ public class AdminController {
     // DASHBOARD
     // =====================================================
     @GetMapping("/dashboard")
-    public String dashboard(Model model) {
-        model.addAttribute("totalStudents", userService.findByRole(Role.ESTUDIANTE).size());
-        model.addAttribute("totalTeachers", userService.findByRole(Role.DOCENTE).size());
+    public String dashboard(Model model,
+                            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
+                            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to) {
+        boolean invalidRange = from != null && to != null && from.isAfter(to);
+        boolean filtered = (from != null || to != null) && !invalidRange;
+        if (filtered) {
+            var start = (from != null ? from : LocalDate.of(1970, 1, 1)).atStartOfDay();
+            var end = (to != null ? to : LocalDate.of(2999, 12, 31)).atTime(LocalTime.MAX);
+            model.addAttribute("totalStudents", userRepository.countByRoleAndCreatedAtBetween(Role.ESTUDIANTE, start, end));
+            model.addAttribute("totalTeachers", userRepository.countByRoleAndCreatedAtBetween(Role.DOCENTE, start, end));
+            model.addAttribute("totalTests", testResultRepository.countByCompletedAtBetween(start, end));
+        } else {
+            model.addAttribute("totalStudents", userService.findByRole(Role.ESTUDIANTE).size());
+            model.addAttribute("totalTeachers", userService.findByRole(Role.DOCENTE).size());
+            model.addAttribute("totalTests", testResultRepository.count());
+        }
+        model.addAttribute("filtered", filtered);
+        model.addAttribute("invalidRange", invalidRange);
+        model.addAttribute("from", from);
+        model.addAttribute("to", to);
         model.addAttribute("totalCareers", careerRepository.count());
-        model.addAttribute("totalTests", testResultRepository.count());
         model.addAttribute("totalQuestions", questionService.count());
         model.addAttribute("contactMessages", contactRepo.count());
         model.addAttribute("newsletterCount", newsRepo.count());
