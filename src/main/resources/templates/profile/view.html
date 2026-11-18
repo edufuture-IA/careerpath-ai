@@ -22,6 +22,13 @@
         ✅ Perfil actualizado correctamente.
     </div>
 
+    <div th:if="${param.badPassword}" class="alert alert-danger">
+        ❌ Contraseña incorrecta. No se eliminó la cuenta.
+    </div>
+    <div th:if="${param.cannotDelete}" class="alert alert-danger">
+        ❌ Solo los estudiantes pueden eliminar su cuenta desde aquí.
+    </div>
+
     <div class="card">
         <div style="display:flex; align-items:center; gap:1rem; margin-bottom:1.5rem;">
             <div class="user-avatar" style="width:64px; height:64px; font-size:1.6rem;"
@@ -61,8 +68,11 @@
 
     <div style="display:flex; gap:.75rem; margin-top:1.5rem; flex-wrap:wrap;">
         <a th:href="@{/profile/edit}" class="btn-primary">✏️ Editar Perfil</a>
-        <form th:action="@{/profile/delete}" method="post" style="display:inline"
-              onsubmit="return confirm('¿Eliminar tu cuenta permanentemente? Esta acción no se puede deshacer.');">
+        <form th:if="${user.role.name() == 'ESTUDIANTE'}" th:action="@{/profile/delete}" method="post"
+              style="display:inline-flex; gap:.5rem; flex-wrap:wrap;"
+              onsubmit="return confirm('¿Eliminar tu cuenta y todos tus datos permanentemente? Esta acción no se puede deshacer.');">
+            <input type="password" name="password" required placeholder="Tu contraseña para confirmar"
+                   style="padding:.75rem 1rem; border:1px solid #cbd5e1; border-radius:10px;">
             <button type="submit" class="btn-danger"
                     style="padding:.75rem 1.5rem; border-radius:10px; font-size:.95rem;">
                 🗑️ Eliminar Cuenta

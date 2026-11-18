@@ -2,6 +2,8 @@ package pe.edu.upc.careerpath_ai.controller;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.transaction.annotation.Transactional;
@@ -79,9 +81,14 @@ public class ProfileController {
     }
 
     @PostMapping("/delete")
-    public String delete(Authentication auth) {
-        User user = userService.findByUsername(auth.getName()).orElseThrow();
-        userRepository.delete(user);
+    public String delete(@RequestParam String password, Authentication auth) {
+        try {
+            userService.deleteAccount(auth.getName(), password);
+        } catch (BadCredentialsException e) {
+            return "redirect:/profile?badPassword";
+        } catch (AccessDeniedException e) {
+            return "redirect:/profile?cannotDelete";
+        }
         return "redirect:/logout";
     }
 }

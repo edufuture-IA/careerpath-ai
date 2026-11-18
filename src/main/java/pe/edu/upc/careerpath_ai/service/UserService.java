@@ -11,5 +11,7 @@ public interface UserService {
     Optional<User> findByUsername(String username);
     List<User> findByRole(Role role);
     User findById(Long id);
-    void delete(Long id);          
+    void delete(Long id);
+    /** US37: borra la cuenta de un ESTUDIANTE y sus datos, previa validación de contraseña. */
+    void deleteAccount(String username, String rawPassword);          
 }
