@@ -34,11 +34,14 @@ public class CareerServiceImpl implements CareerService {
 
     @Override
     public Career save(Career career) {
-        if (career.getDemandIndexUpdatedAt() == null) {
-            career.setDemandIndexUpdatedAt(LocalDateTime.now());
-            if (career.getDemandIndexSource() == null) career.setDemandIndexSource("MANUAL");
+        if (career.getId() != null) {
+            return careerRepository.save(career);
         }
-        return careerRepository.save(career);
+        career.setDemandIndex(0.0);
+        career.setDemandIndexUpdatedAt(null);
+        career.setDemandIndexSource("PENDING");
+        Career saved = careerRepository.save(career);
+        return refreshDemandIndex(saved.getId(), true);
     }
 
     @Override
@@ -49,11 +52,6 @@ public class CareerServiceImpl implements CareerService {
         existing.setDescription(career.getDescription());
         existing.setArea(career.getArea());
         existing.setRequiredSkills(career.getRequiredSkills());
-        if (career.getDemandIndex() != null) {
-            existing.setDemandIndex(career.getDemandIndex());
-            existing.setDemandIndexUpdatedAt(LocalDateTime.now());
-            existing.setDemandIndexSource("MANUAL");
-        }
         return careerRepository.save(existing);
     }
 

@@ -53,13 +53,6 @@
                        class="form-control" placeholder="Ej: lógica,programación,matemática">
             </div>
 
-            <div class="form-group">
-                <label for="demandIndex">Índice de demanda (0.0 a 1.0)</label>
-                <input type="number" id="demandIndex" th:field="*{demandIndex}"
-                       class="form-control" step="0.01" min="0" max="1"
-                       placeholder="Ej: 0.85">
-            </div>
-
             <div style="display:flex; gap:1rem; margin-top:2rem;">
                 <button type="submit" class="btn-primary">💾 Guardar</button>
                 <a th:href="@{/careers}" class="btn-secondary">Cancelar</a>

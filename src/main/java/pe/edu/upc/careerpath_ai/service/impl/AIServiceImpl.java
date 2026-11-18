@@ -32,6 +32,12 @@ public class AIServiceImpl implements AIService {
     @Value("${gemini.api.model:llama3.2}")
     private String modelName;
 
+    @Value("${ollama.search.url:https://ollama.com/api/web_search}")
+    private String searchUrl;
+
+    @Value("${ollama.search.api-key:}")
+    private String searchApiKey;
+
     private final RestTemplate restTemplate;
     private final TestResultRepository testResultRepository;
 
@@ -69,16 +75,47 @@ public class AIServiceImpl implements AIService {
 
     @Override
     public Double estimateDemandIndex(Career career) {
+        String found = searchWeb("demanda laboral empleabilidad " + career.getName() + " Perú");
+        String sources = found.isBlank() ? "" : "Usa esta información encontrada en internet:\n" + found;
         String prompt = """
                 Eres un analista de mercado laboral peruano. Estima el índice de demanda
                 de la carrera "%s" (área: %s) en Perú para el año en curso.
                 Considera empleabilidad, ofertas en portales laborales y crecimiento sectorial.
+                %s
                 Devuelve SOLO un número decimal entre 0.00 y 1.00 (por ejemplo: 0.82).
                 No agregues texto, ni comillas, ni explicación.
                 """.formatted(career.getName(),
-                career.getArea() == null ? "General" : career.getArea());
+                career.getArea() == null ? "General" : career.getArea(), sources);
         String raw = callOllamaAPI(prompt);
         return extractDouble(raw);
+    }
+
+    private String searchWeb(String query) {
+        if (searchApiKey == null || searchApiKey.isBlank()) {
+            log.warn("OLLAMA_API_KEY no configurada: la demanda se estima sin búsqueda web");
+            return "";
+        }
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.setBearerAuth(searchApiKey);
+        try {
+            ResponseEntity<Map> response = restTemplate.postForEntity(searchUrl,
+                    new HttpEntity<>(Map.of("query", query, "max_results", 5), headers), Map.class);
+            Object results = response.getBody() == null ? null : response.getBody().get("results");
+            if (!(results instanceof List<?> list)) return "";
+            StringBuilder sb = new StringBuilder();
+            for (Object item : list) {
+                if (item instanceof Map<?, ?> m) {
+                    String content = String.valueOf(m.get("content"));
+                    sb.append("- ").append(m.get("title")).append(": ")
+                            .append(content.length() > 500 ? content.substring(0, 500) : content).append("\n");
+                }
+            }
+            return sb.toString();
+        } catch (Exception e) {
+            log.warn("Falló la búsqueda web para '{}': {}", query, e.getMessage());
+            return "";
+        }
     }
 
     @Override
