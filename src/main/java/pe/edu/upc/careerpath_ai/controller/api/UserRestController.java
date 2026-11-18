@@ -25,7 +25,6 @@ public class UserRestController {
         return userService.findByRole(Role.ESTUDIANTE).stream().map(UserDTO::from).toList();
     }
 
-    /** US37: el estudiante borra su propia cuenta confirmando su contraseña. */
     @DeleteMapping("/me")
     public ResponseEntity<Void> deleteMe(@Valid @RequestBody DeleteAccountRequest req, Authentication auth) {
         userService.deleteAccount(auth.getName(), req.password());

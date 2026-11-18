@@ -92,8 +92,6 @@ public class UserServiceImpl implements UserService {
         purge(user);
     }
 
-    // Quita al usuario de sus aulas (tablas de unión) y borra sus resultados antes que la fila,
-    // si no la FK de test_results / classroom_* bloquea el borrado. Favoritos caen por cascada.
     private void purge(User user) {
         classroomRepository.findByStudent(user).ifPresent(c -> {
             c.getStudents().remove(user);
