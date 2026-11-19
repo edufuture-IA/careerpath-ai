@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Comparar Carreras - CareerPath AI</title>
+    <link rel="stylesheet" th:href="@{/css/app.css}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<div th:replace="~{fragments/navbar :: navbar}"></div>
+
+<main class="app-container fade-in">
+
+    <div class="page-header">
+        <h1>⚖️ Comparador de Carreras</h1>
+        <p>Selecciona 2 o más carreras para compararlas lado a lado</p>
+    </div>
+
+    <form th:action="@{/careers/compare}" method="post">
+        <div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(280px, 1fr)); gap:1rem; margin-bottom:2rem;">
+            <label th:each="career : ${careers}" class="card"
+                   style="cursor:pointer; display:flex; align-items:center; gap:.75rem;">
+                <input type="checkbox" name="ids" th:value="${career.id}"
+                       style="width:20px; height:20px; accent-color:#4f46e5;">
+                <div style="flex:1;">
+                    <strong style="display:block; color:#0f172a;" th:text="${career.name}">Carrera</strong>
+                    <span class="badge badge-blue" style="margin-top:.3rem;" th:text="${career.area}">Área</span>
+                </div>
+            </label>
+        </div>
+        <button type="submit" class="btn-primary">Comparar Seleccionadas</button>
+    </form>
+</main>
+
+</body>
+</html>

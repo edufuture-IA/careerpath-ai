@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Logs de Actividad - CareerPath AI</title>
+    <link rel="stylesheet" th:href="@{/css/app.css}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<div th:replace="~{fragments/navbar :: navbar}"></div>
+
+<main class="app-container fade-in">
+
+    <div class="page-header" style="display:flex; justify-content:space-between; align-items:flex-end; flex-wrap:wrap; gap:1rem;">
+        <div>
+            <h1>📝 Logs de Actividad</h1>
+            <p>Últimas 50 acciones registradas en el sistema</p>
+        </div>
+        <a th:href="@{/admin/dashboard}" class="btn-secondary">← Volver al dashboard</a>
+    </div>
+
+    <div th:if="${logs.isEmpty()}" class="empty-state">
+        <div class="empty-state-icon">📭</div>
+        <p>No hay actividad registrada todavía.</p>
+    </div>
+
+    <div th:unless="${logs.isEmpty()}" class="table-card">
+        <table class="table">
+            <thead>
+            <tr>
+                <th>Fecha</th>
+                <th>Acción</th>
+                <th>Usuario</th>
+                <th>Descripción</th>
+                <th>IP</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="log : ${logs}">
+                <td style="font-size:.85rem; color:#64748b;"
+                    th:text="${#temporals.format(log.timestamp, 'dd/MM HH:mm')}">-</td>
+                <td>
+                    <span class="badge"
+                          th:classappend="${#strings.startsWith(log.action, 'DELETE') ? 'badge-orange' :
+                                           (#strings.startsWith(log.action, 'CREATE') ? 'badge-green' :
+                                           (#strings.startsWith(log.action, 'UPDATE') ? 'badge-blue' : 'badge-gray'))}"
+                          th:text="${log.action}">-</span>
+                </td>
+                <td>
+                    <div style="display:flex; align-items:center; gap:.5rem;">
+                        <span style="font-weight:600; font-size:.9rem;"
+                              th:text="${log.username}">-</span>
+                        <span class="badge badge-gray" style="font-size:.7rem;"
+                              th:text="${log.role}">-</span>
+                    </div>
+                </td>
+                <td style="font-size:.9rem; color:#334155;" th:text="${log.description}">-</td>
+                <td style="font-size:.8rem; color:#94a3b8; font-family:monospace;"
+                    th:text="${log.ipAddress}">-</td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+</main>
+
+</body>
+</html>

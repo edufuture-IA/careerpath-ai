@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mis Resultados - CareerPath AI</title>
+    <link rel="stylesheet" th:href="@{/css/app.css}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- HTMX y Marked.js -->
+    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+</head>
+<body>
+
+<div th:replace="~{fragments/navbar :: navbar}"></div>
+
+<main class="app-container fade-in" style="max-width:900px;">
+
+    <!-- Encabezado con tu clase .result-header -->
+    <div class="result-header text-center">
+        <h1>Resultados del Test</h1>
+        <p>Realizado el <span th:text="${#temporals.format(result.completedAt, 'dd/MM/yyyy')}"></span></p>
+        <div class="top-area" th:text="${result.topArea}">Ingeniería</div>
+        <p>Tu área predominante</p>
+    </div>
+
+    <div class="grid-2">
+        <!-- Puntajes -->
+        <div class="chart-card">
+            <h3>📊 Puntajes por Área</h3>
+            <div th:each="entry : ${areaScores}" style="margin-bottom:1.2rem;">
+                <div style="display:flex; justify-content:space-between; font-weight:600; margin-bottom:.4rem;">
+                    <span th:text="${entry.key}">Ingeniería</span>
+                    <span th:text="${entry.value} + ' pts'">15 pts</span>
+                </div>
+                <div class="progress-bar" style="margin-bottom:0;">
+                    <!-- Nota: Asumiendo un máximo de 25 pts para el ejemplo -->
+                    <div class="progress-fill" th:style="'width: ' + ${(entry.value * 100) / 25} + '%'"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Carreras -->
+        <div class="career-list-card">
+            <h3>🎯 Carreras Recomendadas</h3>
+            <div th:each="career, iter : ${recommended}" class="career-item">
+                <div class="career-rank" 
+                     th:classappend="${iter.index == 0 ? 'top-1' : (iter.index == 1 ? 'top-2' : (iter.index == 2 ? 'top-3' : ''))}"
+                     th:text="${iter.count}">1</div>
+                <div class="career-name" th:text="${career}">Ingeniería de Sistemas</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Análisis IA -->
+    <div class="card" th:if="${result.aiAnalysis != null}" style="margin-top:1.5rem;">
+        <h3 style="margin-bottom:1rem; color:#0f172a;">🤖 Análisis de la IA</h3>
+        <p class="fst-italic" style="color:#475569;" th:text="${result.aiAnalysis}"></p>
+    </div>
+
+    <!-- ROADMAP IA (HTMX) -->
+    <div class="card card-soft" style="margin-top:2rem; text-align:center; padding:3rem 1.5rem;">
+        <h2 style="font-size:1.4rem; color:#4f46e5; margin-bottom:.5rem;">🗺️ Tu Plan de Acción Personalizado</h2>
+        <p style="color:#64748b; margin-bottom:1.5rem;">Genera una ruta de aprendizaje de 3 pasos basada en tu perfil.</p>
+        
+        <button hx-get="/student/results/{id}/ai-roadmap" 
+                th:hx-get="@{/student/results/{id}/ai-roadmap(id=${result.id})}"
+                hx-target="#roadmap-container"
+                hx-indicator="#spinner-roadmap"
+                class="btn-primary">
+            🚀 Generar mi plan de acción
+            <span id="spinner-roadmap" class="htmx-indicator" style="display:none;">⏳</span>
+        </button>
+        
+        <div id="roadmap-container" style="text-align:left; margin-top:1.5rem;"></div>
+    </div>
+
+    <div style="text-align:center; margin-top:2rem;">
+        <a th:href="@{/student/dashboard}" class="btn-secondary">Volver al Dashboard</a>
+    </div>
+
+</main>
+
+<script>
+    document.addEventListener("htmx:beforeRequest", function(evt) {
+        var spinner = evt.detail.elt.querySelector('.htmx-indicator');
+        if(spinner) spinner.style.display = 'inline-block';
+    });
+    document.addEventListener("htmx:afterRequest", function(evt) {
+        var spinner = evt.detail.elt.querySelector('.htmx-indicator');
+        if(spinner) spinner.style.display = 'none';
+    });
+    document.body.addEventListener("htmx:afterSwap", function(evt) {
+        var elements = evt.detail.target.querySelectorAll('.ai-markdown-content');
+        elements.forEach(function(el) {
+            el.innerHTML = marked.parse(el.innerText);
+        });
+    });
+</script>
+</body>
+</html>

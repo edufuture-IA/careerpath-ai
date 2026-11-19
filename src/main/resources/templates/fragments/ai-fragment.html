@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+    <!-- Fragmento HTML que devuelve el Controlador -->
+    <div th:fragment="response" class="mt-3">
+        <!-- Usamos las clases de alerta de tu app.css -->
+        <div class="alert alert-info shadow-sm border-info" style="background-color: #eff6ff; border-left: 4px solid #4f46e5; padding: 1.5rem; border-radius: 10px;">
+            <div class="ai-markdown-content" style="font-size: 1rem; color: #334155; line-height: 1.7;" th:text="${aiContent}"></div>
+        </div>
+    </div>
+
+    <!-- Script que se ejecuta cada vez que HTMX inyecta el fragmento -->
+    <script th:fragment="scripts">
+        document.body.addEventListener("htmx:afterSwap", function(evt) {
+            var elements = evt.detail.target.querySelectorAll('.ai-markdown-content');
+            elements.forEach(function(el) {
+                el.innerHTML = marked.parse(el.innerText);
+            });
+        });
+    </script>
+</body>
+</html>

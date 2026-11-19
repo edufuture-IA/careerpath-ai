@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mi panel — CareerPath AI</title>
+    <link rel="stylesheet" th:href="@{/css/app.css}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<div th:replace="~{fragments/navbar :: navbar}"></div>
+
+<main class="app-container fade-in">
+
+    <div class="page-header">
+        <h1>Hola, <span th:text="${#strings.substringBefore(user.fullName, ' ')}"></span> 👋</h1>
+        <p>Este es tu espacio de orientación vocacional</p>
+    </div>
+
+    <div class="card card-hero">
+        <h2>Test Vocacional</h2>
+        <p>Responde 10 preguntas y descubre las carreras que mejor encajan contigo. Toma menos de 5 minutos.</p>
+        <a th:href="@{/student/test}" class="btn-primary">🚀 Iniciar test ahora</a>
+    </div>
+
+    <div class="metrics-grid">
+        <div class="metric-card">
+            <div class="metric-icon">📋</div>
+            <div class="metric-value" th:text="${#lists.size(results)}">0</div>
+            <div class="metric-label">Tests realizados</div>
+        </div>
+        <div class="metric-card">
+            <div class="metric-icon">🎯</div>
+            <div class="metric-value"
+                 th:text="${#lists.isEmpty(results) ? '—' : results[0].topArea}">—</div>
+            <div class="metric-label">Área predominante</div>
+        </div>
+        <div class="metric-card">
+            <div class="metric-icon">📅</div>
+            <div class="metric-value"
+                 th:text="${#lists.isEmpty(results) ? 'Aún no' : #temporals.format(results[0].completedAt, 'dd/MM')}">—</div>
+            <div class="metric-label">Último test</div>
+        </div>
+    </div>
+
+    <div class="section-title">
+        <h2>📚 Historial de resultados</h2>
+    </div>
+
+    <div th:if="${#lists.isEmpty(results)}" class="empty-state">
+        <div class="empty-state-icon">📭</div>
+        <p>Aún no has realizado ningún test vocacional.</p>
+        <p style="font-size:.85rem; margin-top:.5rem;">Haz clic en "Iniciar test ahora" para comenzar.</p>
+    </div>
+
+    <div th:unless="${#lists.isEmpty(results)}" class="table-card">
+        <table class="table">
+            <thead>
+            <tr>
+                <th>Fecha</th>
+                <th>Área predominante</th>
+                <th>Carreras sugeridas</th>
+                <th style="text-align:right;">Acciones</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="r : ${results}">
+                <td th:text="${#temporals.format(r.completedAt, 'dd/MM/yyyy HH:mm')}"></td>
+                <td><span class="badge badge-purple" th:text="${r.topArea}"></span></td>
+                <td th:text="${#strings.abbreviate(r.recommendedCareers, 60)}"></td>
+                <td style="text-align:right;">
+                    <a th:href="@{/student/results/{id}(id=${r.id})}" class="btn-ghost">
+                        Ver detalle →
+                    </a>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</main>
+
+</body>
+</html>

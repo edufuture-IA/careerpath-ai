@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${university.name} + ' — CareerPath AI'"></title>
+    <link rel="stylesheet" th:href="@{/css/app.css}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- HTMX y Marked.js para la IA -->
+    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+</head>
+<body>
+
+<div th:replace="~{fragments/navbar :: navbar}"></div>
+
+<main class="app-container fade-in" style="max-width: 1000px;">
+
+    <div class="page-header" style="margin-bottom: 1.5rem;">
+        <a th:href="@{/universities}" class="btn-ghost" style="padding-left:0;">← Volver al directorio</a>
+    </div>
+
+    <!-- HEADER TIPO HERO -->
+    <div style="background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%); border-radius: 20px; padding: 3rem 2rem; text-align: center; color: white; box-shadow: 0 10px 30px rgba(79, 70, 229, 0.3); position: relative; overflow: hidden; margin-bottom: 2rem;">
+        <div style="position: absolute; top: -50px; right: -50px; width: 200px; height: 200px; background: rgba(255,255,255,0.1); border-radius: 50%;"></div>
+        
+        <div style="width: 90px; height: 90px; background: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 3rem; margin: 0 auto 1.5rem; box-shadow: 0 5px 15px rgba(0,0,0,0.2);">
+            🏫
+        </div>
+        
+        <h1 style="font-size: 2.2rem; font-weight: 800; margin: 0 0 0.5rem 0;" th:text="${university.name}"></h1>
+        
+        <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; margin-top: 1rem;">
+            <span style="background: rgba(255,255,255,0.2); padding: 0.4rem 1rem; border-radius: 100px; font-size: 0.9rem; backdrop-filter: blur(5px);">
+                📍 <span th:text="${#strings.isEmpty(university.city) ? 'Perú' : university.city}"></span>
+            </span>
+            <span style="background: rgba(255,255,255,0.2); padding: 0.4rem 1rem; border-radius: 100px; font-size: 0.9rem; backdrop-filter: blur(5px);">
+                🎓 Institución Superior
+            </span>
+        </div>
+    </div>
+
+    <!-- CONTENIDO EN 2 COLUMNAS -->
+    <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 2rem; align-items: start;">
+        
+        <!-- COLUMNA IZQUIERDA -->
+        <div>
+            <!-- TARJETA GENERADA POR IA -->
+            <div class="card" style="margin-bottom: 1.5rem; border-left: 4px solid #4f46e5;">
+                <h3 style="font-size: 1.2rem; color: #0f172a; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
+                    📝 Acerca de la Universidad <span class="badge badge-purple" style="font-size: 0.7rem; padding: 0.2rem 0.5rem;">Generado por IA</span>
+                </h3>
+                
+                <!-- Contenedor HTMX: Se carga solo al abrir la página -->
+                <div hx-get="/universities/detail/{id}/ai-about" 
+                     th:hx-get="@{/universities/detail/{id}/ai-about(id=${university.id})}"
+                     hx-trigger="load"
+                     hx-swap="innerHTML">
+                     <!-- Loader mientras Ollama piensa -->
+                     <div style="display: flex; align-items: center; gap: 0.5rem; color: #64748b;">
+                         <span class="htmx-indicator spinner-border spinner-border-sm" style="display: inline-block; border: 2px solid #c7d2fe; border-top-color: #4f46e5; border-radius: 50%; width: 1rem; height: 1rem; animation: spin 1s linear infinite;"></span>
+                         La IA está analizando esta universidad...
+                     </div>
+                </div>
+            </div>
+
+            <!-- Facultades -->
+            <div class="card" th:if="${not #strings.isEmpty(university.faculties)}">
+                <h3 style="font-size: 1.2rem; color: #0f172a; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
+                    🏛️ Facultades Disponibles
+                </h3>
+                <div style="display: flex; flex-wrap: wrap; gap: 0.8rem;">
+                    <span th:each="faculty : ${#strings.arraySplit(university.faculties, ',')}" 
+                          class="badge badge-purple" 
+                          style="font-size: 0.95rem; padding: 0.6rem 1.2rem; border-radius: 10px;" 
+                          th:text="${#strings.trim(faculty)}">
+                        Facultad
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <!-- COLUMNA DERECHA -->
+        <div>
+            <div class="card" style="text-align: center; border-top: 4px solid #ec4899;">
+                <h3 style="font-size: 1.1rem; color: #0f172a; margin-bottom: 1rem;">¿Te interesa?</h3>
+                <p style="color: #64748b; font-size: 0.9rem; margin-bottom: 1.5rem;">
+                    Visita el sitio web oficial para conocer sus mallas curriculares, costos y proceso de admisión.
+                </p>
+                
+                <a th:if="${not #strings.isEmpty(university.website)}" 
+                   th:href="${university.website}" 
+                   target="_blank" 
+                   class="btn-primary" 
+                   style="width: 100%; justify-content: center; margin-bottom: 0.8rem;">
+                    🌐 Visitar Sitio Web
+                </a>
+                
+                <p th:if="${#strings.isEmpty(university.website)}" style="color: #94a3b8; font-size: 0.85rem; font-style: italic;">
+                    Sitio web no registrado
+                </p>
+
+                <a th:href="@{/universities/edit/{id}(id=${university.id})}" 
+                   class="btn-secondary" 
+                   style="width: 100%; justify-content: center;"
+                   th:if="${#authorization.expression('hasAnyRole(''ADMIN'', ''DOCENTE'')')}">
+                    ✏️ Editar Información
+                </a>
+            </div>
+        </div>
+    </div>
+
+</main>
+
+<style>
+    @keyframes spin { 100% { transform: rotate(360deg); } }
+    @media (max-width: 768px) {
+        .app-container > div[style*="grid-template-columns"] {
+            grid-template-columns: 1fr !important;
+        }
+    }
+</style>
+
+<script>
+    document.body.addEventListener("htmx:afterSwap", function(evt) {
+        var elements = evt.detail.target.querySelectorAll('.ai-markdown-content');
+        elements.forEach(function(el) {
+            el.innerHTML = marked.parse(el.innerText);
+        });
+    });
+</script>
+</body>
+</html>

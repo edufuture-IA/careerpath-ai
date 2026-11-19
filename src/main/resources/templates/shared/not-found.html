@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Enlace no válido — CareerPath AI</title>
+    <link rel="stylesheet" th:href="@{/css/app.css}">
+</head>
+<body>
+<nav class="app-navbar">
+    <a href="/" class="logo">
+        <span class="logo-icon">🎓</span>
+        <span>CareerPath <span class="logo-accent">AI</span></span>
+    </a>
+</nav>
+
+<main class="app-container fade-in" style="text-align:center; padding:4rem 2rem;">
+    <div style="font-size:4rem; margin-bottom:1rem;">🔗❌</div>
+    <h1 style="font-size:1.8rem; color:#0f172a;">Enlace no válido</h1>
+    <p style="color:#64748b; margin-bottom:2rem;">
+        Este enlace de compartir no existe o ha sido eliminado.
+    </p>
+    <a th:href="@{/}" class="btn-primary">Volver al inicio</a>
+</main>
+
+</body>
+</html>

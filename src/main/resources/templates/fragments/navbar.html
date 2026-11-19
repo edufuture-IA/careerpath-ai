@@ -1,0 +1,63 @@
+<nav class="app-navbar" xmlns:th="http://www.thymeleaf.org" th:fragment="navbar">
+    <a th:href="@{/}" class="logo">
+        <span class="logo-icon">🎓</span>
+        <span>CareerPath <span class="logo-accent">AI</span></span>
+    </a>
+
+    <div class="nav-right" th:if="${#authorization.expression('isAuthenticated()')}">
+
+        <!-- ESTUDIANTE -->
+        <th:block th:if="${#authorization.expression('hasRole(''ESTUDIANTE'')')}">
+            <a th:href="@{/student/dashboard}" class="nav-link">Mi panel</a>
+            <a th:href="@{/student/test}" class="nav-link">Nuevo test</a>
+            <a th:href="@{/careers}" class="nav-link">Carreras</a>
+            <a th:href="@{/student/favorites}" class="nav-link">⭐ Favoritos</a>
+            <a th:href="@{/student/courses}" class="nav-link">📚 Cursos</a>
+            <a th:href="@{/careers/compare}" class="nav-link">⚖️ Comparar</a>
+            <a th:href="@{/universities}" class="nav-link">🎓 Universidades</a>
+        </th:block>
+
+        <!-- DOCENTE -->
+        <th:block th:if="${#authorization.expression('hasRole(''DOCENTE'')')}">
+            <a th:href="@{/teacher/dashboard}" class="nav-link">Panel</a>
+            <a th:href="@{/careers}" class="nav-link">Carreras</a>
+            <a th:href="@{/universities}" class="nav-link">Universidades</a>
+        </th:block>
+
+        <!-- ADMIN -->
+        <th:block th:if="${#authorization.expression('hasRole(''ADMIN'')')}">
+            <a th:href="@{/admin/dashboard}" class="nav-link">Admin</a>
+            <a th:href="@{/admin/users}" class="nav-link">Usuarios</a>
+            <a th:href="@{/admin/questions}" class="nav-link">Preguntas</a>
+            <a th:href="@{/admin/institutions}" class="nav-link">🏫 Colegios</a>
+            <a th:href="@{/admin/messages}" class="nav-link">📩 Mensajes</a>
+            <a th:href="@{/admin/logs}" class="nav-link">📝 Logs</a>
+            <a th:href="@{/careers}" class="nav-link">Carreras</a>
+            <a th:href="@{/universities}" class="nav-link">Universidades</a>
+        </th:block>
+
+        <!-- COLEGIO -->
+        <th:block th:if="${#authorization.expression('hasRole(''COLEGIO'')')}">
+            <a th:href="@{/institution/dashboard}" class="nav-link">Panel Colegio</a>
+        </th:block>
+
+        <!-- Perfil (clicable) -->
+        <a th:href="@{/profile}" class="user-badge" style="text-decoration:none;">
+            <span class="user-avatar"
+                  th:text="${#strings.substring(#authentication.name, 0, 1).toUpperCase()}">U</span>
+            <span class="user-name" th:text="${#authentication.name}">Usuario</span>
+        </a>
+
+        <form th:action="@{/logout}" method="post" style="display:inline">
+            <button type="submit" class="btn-logout">Salir</button>
+        </form>
+    </div>
+
+    <!-- NO autenticado -->
+    <div class="nav-right" th:unless="${#authorization.expression('isAuthenticated()')}">
+        <a th:href="@{/universities}" class="nav-link">Universidades</a>
+        <a th:href="@{/contact}" class="nav-link">Contacto</a>
+        <a th:href="@{/login}" class="nav-link">Login</a>
+        <a th:href="@{/register}" class="btn-logout">Registrarse</a>
+    </div>
+</nav>

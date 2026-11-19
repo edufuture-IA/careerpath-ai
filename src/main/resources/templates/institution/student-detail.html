@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="'Alumno: ' + ${student.fullName}"></title>
+    <link rel="stylesheet" th:href="@{/css/app.css}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<div th:replace="~{fragments/navbar :: navbar}"></div>
+
+<main class="app-container fade-in" style="max-width:900px;">
+
+    <div class="page-header">
+        <a th:href="@{/institution/dashboard}" class="btn-ghost" style="padding-left:0;">← Volver al panel</a>
+        <h1 th:text="${student.fullName}">Alumno</h1>
+        <p th:text="${student.username}">correo</p>
+    </div>
+
+    <div class="card" style="margin-bottom:2rem;">
+        <div style="display:flex; gap:1rem; flex-wrap:wrap;">
+            <div>
+                <strong style="color:#64748b; font-size:.85rem;">AULA</strong>
+                <p th:if="${classroom != null}">
+                    <span class="badge badge-blue" th:text="${classroom.name}">5to A</span>
+                    <span th:text="'(' + ${classroom.grade} + ')'"
+                          style="color:#64748b; font-size:.85rem;">(5to secundaria)</span>
+                </p>
+                <p th:if="${classroom == null}" style="color:#94a3b8; font-style:italic;">
+                    Sin aula asignada
+                </p>
+            </div>
+            <div>
+                <strong style="color:#64748b; font-size:.85rem;">TESTS REALIZADOS</strong>
+                <p style="font-size:1.5rem; font-weight:800; color:#4f46e5;"
+                   th:text="${results.size()}">0</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="section-title">
+        <h2>📋 Historial de tests</h2>
+    </div>
+
+    <div th:if="${results.isEmpty()}" class="empty-state">
+        <div class="empty-state-icon">📭</div>
+        <p>Este alumno aún no ha realizado ningún test vocacional.</p>
+    </div>
+
+    <div th:unless="${results.isEmpty()}" class="table-card">
+        <table class="table">
+            <thead>
+            <tr>
+                <th>Fecha</th>
+                <th>Área predominante</th>
+                <th>Carreras recomendadas</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="r : ${results}">
+                <td th:text="${#temporals.format(r.completedAt, 'dd/MM/yyyy HH:mm')}">-</td>
+                <td><span class="badge badge-purple" th:text="${r.topArea}">-</span></td>
+                <td th:text="${r.recommendedCareers}">-</td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+</main>
+
+</body>
+</html>

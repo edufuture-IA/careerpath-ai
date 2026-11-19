@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="'Alumno: ' + ${student.fullName}"></title>
+    <link rel="stylesheet" th:href="@{/css/app.css}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<div th:replace="~{fragments/navbar :: navbar}"></div>
+
+<main class="app-container fade-in" style="max-width:900px;">
+
+    <div class="page-header">
+        <a th:href="@{/admin/users}" class="btn-ghost" style="padding-left:0;">← Volver a usuarios</a>
+        <h1 th:text="${student.fullName}"></h1>
+        <p th:text="${student.username}"></p>
+    </div>
+
+    <div class="card" style="margin-bottom:2rem;">
+        <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:1rem;">
+            <div>
+                <strong style="color:#64748b; font-size:.85rem;">ROL</strong>
+                <p><span class="badge badge-purple" th:text="${student.role}">-</span></p>
+            </div>
+            <div>
+                <strong style="color:#64748b; font-size:.85rem;">INSTITUCIÓN</strong>
+                <p th:text="${student.institution != null ? student.institution.name : '—'}">—</p>
+            </div>
+            <div>
+                <strong style="color:#64748b; font-size:.85rem;">TESTS REALIZADOS</strong>
+                <p style="font-size:1.5rem; font-weight:800; color:#4f46e5;"
+                   th:text="${results.size()}">0</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="section-title">
+        <h2>📋 Historial de tests</h2>
+    </div>
+
+    <div th:if="${results.isEmpty()}" class="empty-state">
+        <div class="empty-state-icon">📭</div>
+        <p>Este alumno aún no ha realizado ningún test.</p>
+    </div>
+
+    <div th:unless="${results.isEmpty()}" class="table-card">
+        <table class="table">
+            <thead>
+            <tr>
+                <th>Fecha</th>
+                <th>Área predominante</th>
+                <th>Carreras recomendadas</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="r : ${results}">
+                <td th:text="${#temporals.format(r.completedAt, 'dd/MM/yyyy HH:mm')}">-</td>
+                <td><span class="badge badge-purple" th:text="${r.topArea}">-</span></td>
+                <td th:text="${r.recommendedCareers}">-</td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+</main>
+
+</body>
+</html>

@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Comparar Carreras - CareerPath AI</title>
+    
+    <!-- Tu CSS principal -->
+    <link rel="stylesheet" th:href="@{/css/app.css}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Librería para convertir Markdown a HTML -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+</head>
+<body>
+
+<div th:replace="~{fragments/navbar :: navbar}"></div>
+
+<main class="app-container fade-in">
+
+    <div class="page-header" style="display:flex; justify-content:space-between; align-items:flex-end; flex-wrap:wrap; gap:1rem;">
+        <div>
+            <h1>Comparación de Carreras</h1>
+            <p>Analiza cuál se adapta mejor a ti</p>
+        </div>
+        <a th:href="@{/careers}" class="btn-secondary">← Volver al catálogo</a>
+    </div>
+
+    <!-- Tabla Comparativa -->
+    <div class="table-card">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th style="width: 20%;">Característica</th>
+                    <th th:each="career : ${careers}" style="text-align:center; width: 40%;" th:text="${career.name}">Carrera</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td style="font-weight:700; background:#f8fafc;">Área</td>
+                    <td th:each="career : ${careers}" style="text-align:center;" th:text="${career.area}">Área</td>
+                </tr>
+                <tr>
+                    <td style="font-weight:700; background:#f8fafc;">Índice de Demanda</td>
+                    <td th:each="career : ${careers}" style="text-align:center;">
+                        <span class="badge badge-green" style="font-size: 0.9rem;" th:text="${#numbers.formatDecimal(career.demandIndex * 100, 1, 0)} + '%'">88%</span>
+                    </td>
+                </tr>
+                <tr>
+                    <td style="font-weight:700; background:#f8fafc;">Descripción</td>
+                    <td th:each="career : ${careers}" th:text="${career.description}">Desc...</td>
+                </tr>
+                <tr>
+                    <td style="font-weight:700; background:#f8fafc;">Habilidades Clave</td>
+                    <td th:each="career : ${careers}" th:text="${career.requiredSkills}">Habilidades...</td>
+                </tr>
+                <tr>
+                    <td style="font-weight:700; background:#f8fafc;">Acciones</td>
+                    <td th:each="career : ${careers}" style="text-align:center;">
+                        <a th:href="@{/careers/detail/{id}(id=${career.id})}" class="btn-primary" style="padding: 0.4rem 0.9rem; font-size: 0.85rem;">Ver Detalle</a>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Veredicto de la IA -->
+    <div th:if="${aiComparison != null}" class="card" style="margin-top: 2rem; border-left: 4px solid #4f46e5;">
+        <div style="display: flex; align-items: center; gap: 0.8rem; margin-bottom: 1rem;">
+            <div class="metric-icon" style="background: linear-gradient(135deg, #4f46e5, #7c3aed); color: white; box-shadow: none;">🤖</div>
+            <h2 style="font-size: 1.2rem; margin: 0; color: #0f172a;">Veredicto del Orientador IA</h2>
+        </div>
+        
+        <!-- Texto crudo de la IA (oculto) -->
+        <div id="aiComparisonText" th:text="${aiComparison}" style="display:none;"></div>
+        
+        <!-- Aquí se inyectará el HTML con viñetas y negritas -->
+        <div id="aiComparisonHtml" class="ai-verdict"></div>
+    </div>
+
+</main>
+
+<!-- Script para procesar el Markdown -->
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        var rawTextDiv = document.getElementById('aiComparisonText');
+        var htmlDiv = document.getElementById('aiComparisonHtml');
+        
+        if (rawTextDiv && htmlDiv) {
+            var rawText = rawTextDiv.innerText || rawTextDiv.textContent;
+            // Convierte los asteriscos de la IA en etiquetas HTML (strong, li, p)
+            var parsedHtml = marked.parse(rawText);
+            htmlDiv.innerHTML = parsedHtml;
+        }
+    });
+</script>
+</body>
+</html>

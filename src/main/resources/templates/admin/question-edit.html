@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Editar Pregunta - CareerPath AI</title>
+    <link rel="stylesheet" th:href="@{/css/app.css}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<div th:replace="~{fragments/navbar :: navbar}"></div>
+
+<main class="app-container fade-in" style="max-width:700px;">
+
+    <div class="page-header">
+        <a th:href="@{/admin/questions}" class="btn-ghost" style="padding-left:0;">← Volver a preguntas</a>
+        <h1>✏️ Editar Pregunta</h1>
+        <p>Modifica el texto, área u orden de la pregunta</p>
+    </div>
+
+    <div class="card">
+        <form th:action="@{/admin/questions/edit/{id}(id=${question.id})}" method="post">
+
+            <div class="form-group">
+                <label for="text">Texto de la pregunta</label>
+                <input type="text" id="text" name="text"
+                       th:value="${question.text}"
+                       class="form-control" required maxlength="500">
+            </div>
+
+            <div class="form-group">
+                <label for="area">Área evaluada</label>
+                <select id="area" name="area" class="form-control" required>
+                    <option value="Ingeniería"   th:selected="${question.area == 'Ingeniería'}">Ingeniería</option>
+                    <option value="Salud"        th:selected="${question.area == 'Salud'}">Salud</option>
+                    <option value="Negocios"     th:selected="${question.area == 'Negocios'}">Negocios</option>
+                    <option value="Arte"         th:selected="${question.area == 'Arte'}">Arte</option>
+                    <option value="Legal"        th:selected="${question.area == 'Legal'}">Legal</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="orderIndex">Orden</label>
+                <input type="number" id="orderIndex" name="orderIndex"
+                       th:value="${question.orderIndex}"
+                       class="form-control" required>
+            </div>
+
+            <div style="display:flex; gap:1rem; margin-top:1.5rem;">
+                <button type="submit" class="btn-primary">💾 Guardar Cambios</button>
+                <a th:href="@{/admin/questions}" class="btn-secondary">Cancelar</a>
+            </div>
+        </form>
+    </div>
+
+</main>
+
+</body>
+</html>
