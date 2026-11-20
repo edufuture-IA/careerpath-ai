@@ -1,5 +1,6 @@
 package pe.edu.upc.careerpath_ai.controller;
 
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
@@ -7,8 +8,11 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import pe.edu.upc.careerpath_ai.model.User;
 import pe.edu.upc.careerpath_ai.service.AIService;
+import pe.edu.upc.careerpath_ai.service.ExportService;
 import pe.edu.upc.careerpath_ai.service.TestService;
 import pe.edu.upc.careerpath_ai.service.UserService;
+
+import java.io.IOException;
 
 @Controller
 @RequestMapping("/student")
@@ -18,6 +22,7 @@ public class StudentController {
     private final UserService userService;
     private final TestService testService;
     private final AIService aiService;
+    private final ExportService exportService;
 
     @GetMapping("/dashboard")
     public String dashboard(Authentication auth, Model model) {
@@ -40,6 +45,19 @@ public class StudentController {
         model.addAttribute("areaScores", testService.parseAreaScores(result.getAreaScores()));
         model.addAttribute("recommended", testService.parseRecommendedCareers(result.getRecommendedCareers()));
         return "student/results";
+    }
+
+    // US10: el estudiante descarga su propio resultado en PDF
+    @GetMapping("/results/{id}/pdf")
+    public void downloadPdf(@PathVariable Long id, Authentication auth,
+                            HttpServletResponse response) throws IOException {
+        var result = testService.findById(id);
+        User currentUser = userService.findByUsername(auth.getName()).orElseThrow();
+        if (!result.getStudent().getId().equals(currentUser.getId())) {
+            response.sendRedirect("/student/dashboard");
+            return;
+        }
+        exportService.exportTestResultToPdf(result, response);
     }
 
     @GetMapping("/results/{id}/ai-roadmap")
