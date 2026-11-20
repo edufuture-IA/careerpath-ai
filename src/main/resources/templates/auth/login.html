@@ -15,10 +15,11 @@
 
     <!-- Columna izquierda (branding) -->
     <div class="auth-left">
-        <div class="auth-brand">
+        <!-- 🆕 Hacemos que el logo sea un enlace al inicio -->
+        <a th:href="@{/}" class="auth-brand" style="text-decoration: none; cursor: pointer;">
             <span class="logo-icon">🎓</span>
             <span>CareerPath AI</span>
-        </div>
+        </a>
 
         <div class="auth-hero">
             <h1>Bienvenido de vuelta</h1>
@@ -44,6 +45,11 @@
     <!-- Columna derecha (formulario) -->
     <div class="auth-right">
         <div class="auth-form-wrapper fade-in">
+
+            <!-- 🆕 Botón para volver a la Landing Page -->
+            <a th:href="@{/}" style="display: inline-flex; align-items: center; gap: 0.5rem; color: #64748b; text-decoration: none; font-weight: 600; font-size: 0.9rem; margin-bottom: 1.5rem; transition: color 0.2s;">
+                ← Volver al inicio
+            </a>
 
             <h2>Iniciar sesión</h2>
             <p class="subtitle">Ingresa tus credenciales para continuar</p>

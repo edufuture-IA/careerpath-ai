@@ -10,6 +10,7 @@ import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestTemplate;
 import pe.edu.upc.careerpath_ai.model.Career;
 import pe.edu.upc.careerpath_ai.model.TestResult;
+import pe.edu.upc.careerpath_ai.model.University;
 import pe.edu.upc.careerpath_ai.repository.TestResultRepository;
 import pe.edu.upc.careerpath_ai.service.AIService;
 
@@ -165,9 +166,23 @@ public class AIServiceImpl implements AIService {
             if (i < careers.size() - 1) nombres.append(", ");
         }
 
-        String prompt = "Compara las siguientes carreras en Perú: " + nombres.toString() + ". " +
-                "Dime en 3 puntos clave: 1) Cuál tiene mejor futuro a 5 años, 2) Cuál es más difícil de estudiar, " +
-                "3) Un consejo para elegir entre ellas. Sé directo, objetivo y usa viñetas. Máximo 150 palabras.";
+        String prompt = "Compara las siguientes carreras en Perú: " + nombres.toString() + ".\n\n" +
+                "Por favor, responde usando EXACTAMENTE este formato:\n" +
+                "**1. Futuro a 5 años:**\n[Tu análisis aquí]\n\n" +
+                "**2. Dificultad de estudio:**\n[Tu análisis aquí]\n\n" +
+                "**3. Consejo final:**\n[Tu consejo aquí]\n\n" +
+                "Sé directo, objetivo y no uses más de 150 palabras en total.";
+        return callOllamaAPI(prompt);
+    }
+
+    // Aporte de Luis Ttito: texto "Acerca de" de la universidad generado con IA
+    @Override
+    public String generateUniversityInfo(University uni) {
+        String prompt = "Actúa como un orientador vocacional experto. Escribe un párrafo atractivo (máximo 100 palabras) " +
+                "para convencer a un estudiante de secundaria de estudiar en la universidad " + uni.getName() +
+                " ubicada en " + (uni.getCity() != null ? uni.getCity() : "Perú") + ". " +
+                "Destaca sus facultades: " + (uni.getFaculties() != null ? uni.getFaculties() : "diversas áreas") + ". " +
+                "Usa un tono inspirador y menciona por qué es una buena opción para su futuro profesional.";
         return callOllamaAPI(prompt);
     }
 
