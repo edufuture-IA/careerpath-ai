@@ -67,7 +67,8 @@ public class InstitutionController {
     @Transactional(readOnly = true)
     public String dashboard(Model model, Authentication auth,
                             @RequestParam(required = false) String search,
-                            @RequestParam(required = false) Long classroomId) {
+                            @RequestParam(required = false) Long classroomId,
+                            @RequestParam(defaultValue = "false") boolean pending) {
 
         User admin;
         try {
@@ -79,7 +80,7 @@ public class InstitutionController {
         Long instId = admin.getInstitution().getId();
         Institution inst = institutionService.findById(instId);
 
-        List<User> students = institutionService.filterStudents(instId, search, classroomId);
+        List<User> students = institutionService.filterStudents(instId, search, classroomId, pending);
         List<User> teachers = institutionService.teachersOf(instId);
         List<Classroom> classrooms = institutionService.classrooms(instId);
 
@@ -108,6 +109,7 @@ public class InstitutionController {
         model.addAttribute("studentsWithTest", studentsWithTest);
         model.addAttribute("searchTerm", search);
         model.addAttribute("classroomFilter", classroomId);
+        model.addAttribute("pendingFilter", pending);
         return "institution/dashboard";
     }
 

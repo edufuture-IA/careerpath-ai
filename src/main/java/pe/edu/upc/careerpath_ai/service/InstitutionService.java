@@ -39,7 +39,8 @@ public interface InstitutionService {
     Institution updateInstitution(Institution institution);   // 🆕 AGREGAR
 
     // Funciones B2B
-    List<User> filterStudents(Long institutionId, String search, Long classroomId);
+    // US16: onlyPending = true deja solo a los alumnos que aun no completan ningun test
+    List<User> filterStudents(Long institutionId, String search, Long classroomId, boolean onlyPending);
     Map<Long, Integer> testCountByStudent(List<User> students);
     Map<String, Long> areaDistribution(Long institutionId);
     Map<Long, Map<String, Long>> areaDistributionByClassroom(Long institutionId);
