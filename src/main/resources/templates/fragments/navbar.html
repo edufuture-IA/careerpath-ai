@@ -41,6 +41,12 @@
             <a th:href="@{/institution/dashboard}" class="nav-link">Panel Colegio</a>
         </th:block>
 
+        <!-- UNIVERSIDAD -->
+        <th:block th:if="${#authorization.expression('hasRole(''UNIVERSIDAD'')')}">
+            <a th:href="@{/university/panel}" class="nav-link">Mi universidad</a>
+            <a th:href="@{/university/stats}" class="nav-link">Estadísticas</a>
+        </th:block>
+
         <!-- Perfil (clicable) -->
         <a th:href="@{/profile}" class="user-badge" style="text-decoration:none;">
             <span class="user-avatar"

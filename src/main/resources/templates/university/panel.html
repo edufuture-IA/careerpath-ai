@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mi universidad - CareerPath AI</title>
+    <link rel="stylesheet" th:href="@{/css/app.css}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<div th:replace="~{fragments/navbar :: navbar}"></div>
+
+<main class="app-container fade-in" style="max-width:700px;">
+
+    <div class="page-header">
+        <h1>🏛️ Mi universidad</h1>
+        <p>Edita únicamente los datos de tu institución</p>
+    </div>
+
+    <div th:if="${param.saved}" class="alert alert-success">Datos actualizados correctamente.</div>
+
+    <div th:if="${university == null}" class="card">
+        <p>Tu cuenta aún no está asociada a una universidad. Contacta al administrador.</p>
+    </div>
+
+    <div th:if="${university != null}" class="card">
+        <form th:action="@{/university/panel}" method="post">
+
+            <div class="form-group">
+                <label>Nombre</label>
+                <input type="text" class="form-control" th:value="${university.name}" disabled>
+            </div>
+
+            <div class="form-group">
+                <label for="website">Sitio web</label>
+                <input type="url" id="website" name="website" class="form-control"
+                       th:value="${university.website}" placeholder="https://...">
+            </div>
+
+            <div class="form-group">
+                <label for="city">Ciudad</label>
+                <input type="text" id="city" name="city" class="form-control"
+                       th:value="${university.city}">
+            </div>
+
+            <div class="form-group">
+                <label for="logoUrl">URL del logo (opcional)</label>
+                <input type="url" id="logoUrl" name="logoUrl" class="form-control"
+                       th:value="${university.logoUrl}" placeholder="https://...">
+            </div>
+
+            <div class="form-group">
+                <label for="description">Descripción</label>
+                <textarea id="description" name="description" class="form-control" rows="4"
+                          th:text="${university.description}"></textarea>
+            </div>
+
+            <div class="form-group">
+                <label for="faculties">Facultades (separadas por coma)</label>
+                <input type="text" id="faculties" name="faculties" class="form-control"
+                       th:value="${university.faculties}">
+            </div>
+
+            <button type="submit" class="btn-primary">Guardar cambios</button>
+            <a th:href="@{/university/stats}" class="btn-secondary">Ver estadísticas</a>
+        </form>
+    </div>
+
+</main>
+
+</body>
+</html>

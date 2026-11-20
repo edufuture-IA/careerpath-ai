@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Estadísticas de afinidad - CareerPath AI</title>
+    <link rel="stylesheet" th:href="@{/css/app.css}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<div th:replace="~{fragments/navbar :: navbar}"></div>
+
+<main class="app-container fade-in" style="max-width:900px;">
+
+    <div class="page-header">
+        <h1>📊 Afinidad por carrera</h1>
+        <p th:if="${university != null}" th:text="${university.name}"></p>
+    </div>
+
+    <div th:if="${university == null}" class="card">
+        <p>Tu cuenta aún no está asociada a una universidad. Contacta al administrador.</p>
+    </div>
+
+    <div th:if="${university != null}">
+
+        <div class="card card-soft" style="margin-bottom:1.5rem;">
+            <p>
+                Evaluaciones realizadas en la plataforma:
+                <strong th:text="${stats.totalEvaluations}">0</strong>.
+                Los datos están agrupados: no incluyen nombres ni datos personales de los estudiantes.
+            </p>
+        </div>
+
+        <div th:if="${#lists.isEmpty(stats.rows)}" class="card">
+            <p>Tu universidad aún no tiene carreras asociadas.</p>
+        </div>
+
+        <div th:unless="${#lists.isEmpty(stats.rows)}" class="table-card">
+            <table class="table">
+                <thead>
+                <tr>
+                    <th>Carrera</th>
+                    <th>Evaluaciones que la recomiendan</th>
+                    <th>% del total</th>
+                    <th style="width:30%;"></th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="row : ${stats.rows}">
+                    <td th:text="${row.career}"></td>
+                    <td th:text="${row.evaluations}"></td>
+                    <td th:text="${row.percent} + ' %'"></td>
+                    <td>
+                        <div style="background:#ede9fe; border-radius:999px; height:10px;">
+                            <div th:style="'width:' + ${row.percent} + '%; height:10px; border-radius:999px; background:linear-gradient(90deg,#6366f1,#ec4899);'"></div>
+                        </div>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+
+    </div>
+
+    <div style="text-align:center; margin-top:2rem;">
+        <a th:href="@{/university/panel}" class="btn-secondary">Volver a mi universidad</a>
+    </div>
+
+</main>
+
+</body>
+</html>
