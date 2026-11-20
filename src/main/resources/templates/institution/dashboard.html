@@ -157,6 +157,13 @@
                             th:selected="${c.id == classroomFilter}"></option>
                 </select>
             </div>
+            <div class="form-group" style="margin:0;">
+                <label for="pending" style="display:flex; gap:.5rem; align-items:center;">
+                    <input type="checkbox" id="pending" name="pending" value="true"
+                           th:checked="${pendingFilter}">
+                    Solo pendientes (sin test)
+                </label>
+            </div>
             <button type="submit" class="btn-primary">Filtrar</button>
             <a th:href="@{/institution/dashboard}" class="btn-secondary">Limpiar</a>
         </form>

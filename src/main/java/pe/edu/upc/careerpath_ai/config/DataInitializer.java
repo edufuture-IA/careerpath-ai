@@ -18,6 +18,7 @@ public class DataInitializer implements CommandLineRunner {
     private final QuestionRepository questionRepository;
     private final CourseRepository courseRepository;
     private final UniversityRepository universityRepository;
+    private final InstitutionRepository institutionRepository;
     private final ActivityLogRepository activityLogRepository;   // 🆕
     private final PasswordEncoder encoder;
 
@@ -30,6 +31,7 @@ public class DataInitializer implements CommandLineRunner {
         seedUniversities();
         linkUniversityCareers();
         seedUniversityAccount();
+        seedSchoolAccount();
         seedActivityLogs();   // 🆕
     }
 
@@ -250,6 +252,47 @@ public class DataInitializer implements CommandLineRunner {
                     .forEach(c -> u.getCareers().add(c));
             universityRepository.save(u);
         }
+    }
+
+    // US16: colegio demo con alumnos para probar el dashboard y el filtro de pendientes
+    private void seedSchoolAccount() {
+        if (userRepository.findByUsername("colegio@demo.edu.pe").isPresent()) return;
+
+        Institution school = institutionRepository.save(Institution.builder()
+                .name("Colegio Demo")
+                .contactEmail("colegio@demo.edu.pe")
+                .address("Lima")
+                .invitationCode("DEMO2026")
+                .build());
+
+        userRepository.save(User.builder()
+                .username("colegio@demo.edu.pe")
+                .password(encoder.encode("colegio123"))
+                .fullName("Colegio Demo")
+                .role(Role.COLEGIO)
+                .institution(school)
+                .build());
+
+        // Dos alumnos sin ningun test (pendientes)
+        for (String[] a : new String[][]{{"Beto Pendiente", "beto@demo.edu.pe"},
+                                         {"Carla Pendiente", "carla@demo.edu.pe"}}) {
+            userRepository.save(User.builder()
+                    .username(a[1])
+                    .password(encoder.encode("alumno123"))
+                    .fullName(a[0])
+                    .role(Role.ESTUDIANTE)
+                    .institution(school)
+                    .build());
+        }
+
+        // El alumno demo (que ya tiene tests) tambien pertenece al colegio, para contrastar
+        userRepository.findByUsername("alumno@upc.edu.pe").ifPresent(u -> {
+            if (u.getInstitution() == null) {
+                u.setInstitution(school);
+                userRepository.save(u);
+            }
+        });
+        System.out.println("✅ COLEGIO creado: colegio@demo.edu.pe / colegio123 (codigo DEMO2026)");
     }
 
     // US20: cuenta demo de una universidad partner
