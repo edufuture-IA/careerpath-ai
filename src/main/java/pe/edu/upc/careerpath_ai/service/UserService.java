@@ -12,5 +12,6 @@ public interface UserService {
     List<User> findByRole(Role role);
     User findById(Long id);
     void delete(Long id);
+    void setEnabled(Long id, boolean enabled);
     void deleteAccount(String username, String rawPassword);          
 }

@@ -34,6 +34,11 @@ public class User {
     @Column(updatable = false)
     private LocalDateTime createdAt;
 
+    // US38: una cuenta suspendida no puede iniciar sesion
+    @Column(nullable = false, columnDefinition = "boolean default true")
+    @Builder.Default
+    private boolean enabled = true;
+
     @PrePersist
     void onCreate() {
         createdAt = LocalDateTime.now();
@@ -43,6 +48,11 @@ public class User {
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "institution_id")
     private Institution institution;
+
+    // US20: la cuenta con rol UNIVERSIDAD solo gestiona esta universidad
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "university_id")
+    private University university;
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default

@@ -276,7 +276,7 @@ public class InstitutionServiceImpl implements InstitutionService {
     // FUNCIONES B2B
     // =====================================================
     @Override
-    public List<User> filterStudents(Long institutionId, String search, Long classroomId) {
+    public List<User> filterStudents(Long institutionId, String search, Long classroomId, boolean onlyPending) {
         List<User> students = studentsOf(institutionId);
 
         if (search != null && !search.isBlank()) {
@@ -296,6 +296,12 @@ public class InstitutionServiceImpl implements InstitutionService {
                         .filter(st -> idsInClassroom.contains(st.getId()))
                         .toList();
             }
+        }
+
+        if (onlyPending) {
+            students = students.stream()
+                    .filter(st -> testResultRepository.findByStudentOrderByCompletedAtDesc(st).isEmpty())
+                    .toList();
         }
         return students;
     }

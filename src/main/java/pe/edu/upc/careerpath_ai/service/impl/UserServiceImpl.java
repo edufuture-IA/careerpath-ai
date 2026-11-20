@@ -80,6 +80,14 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
+    public void setEnabled(Long id, boolean enabled) {
+        User user = findById(id);
+        user.setEnabled(enabled);
+        userRepository.save(user);
+    }
+
+    @Override
+    @Transactional
     public void deleteAccount(String username, String rawPassword) {
         User user = findByUsername(username)
                 .orElseThrow(() -> new RecursoNoEncontradoException("Usuario no encontrado"));

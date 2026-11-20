@@ -78,10 +78,44 @@ public class AdminController {
     // USUARIOS
     // =====================================================
     @GetMapping("/users")
-    public String users(Model model) {
-        model.addAttribute("students", userService.findByRole(Role.ESTUDIANTE));
-        model.addAttribute("teachers", userService.findByRole(Role.DOCENTE));
+    public String users(@RequestParam(required = false) String q, Model model) {
+        model.addAttribute("students", filterUsers(userService.findByRole(Role.ESTUDIANTE), q));
+        model.addAttribute("teachers", filterUsers(userService.findByRole(Role.DOCENTE), q));
+        model.addAttribute("q", q);
         return "admin/users";
+    }
+
+    private List<User> filterUsers(List<User> users, String q) {
+        if (q == null || q.isBlank()) {
+            return users;
+        }
+        String term = q.trim().toLowerCase();
+        return users.stream()
+                .filter(u -> u.getFullName().toLowerCase().contains(term)
+                        || u.getUsername().toLowerCase().contains(term))
+                .toList();
+    }
+
+    @PostMapping("/users/suspend/{id}")
+    public String suspendUser(@PathVariable Long id, Authentication auth, HttpServletRequest request) {
+        return changeUserStatus(id, false, auth, request);
+    }
+
+    @PostMapping("/users/reactivate/{id}")
+    public String reactivateUser(@PathVariable Long id, Authentication auth, HttpServletRequest request) {
+        return changeUserStatus(id, true, auth, request);
+    }
+
+    private String changeUserStatus(Long id, boolean enabled, Authentication auth, HttpServletRequest request) {
+        User user = userService.findById(id);
+        if (user.getRole() == Role.ADMIN || user.getUsername().equals(auth.getName())) {
+            return "redirect:/admin/users?forbidden";
+        }
+        userService.setEnabled(id, enabled);
+        activityLogService.log(enabled ? "REACTIVATE_USER" : "SUSPEND_USER",
+                (enabled ? "Reactivó usuario: " : "Suspendió usuario: ") + user.getUsername(),
+                auth.getName(), "ADMIN", request.getRemoteAddr());
+        return "redirect:/admin/users?" + (enabled ? "reactivated" : "suspended");
     }
 
     @PostMapping("/users/delete/{id}")

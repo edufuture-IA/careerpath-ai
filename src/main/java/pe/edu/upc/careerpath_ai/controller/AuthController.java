@@ -55,6 +55,7 @@ public class AuthController {
             case "ROLE_ADMIN"   -> "redirect:/admin/dashboard";
             case "ROLE_DOCENTE" -> "redirect:/teacher/dashboard";
             case "ROLE_COLEGIO" -> "redirect:/institution/dashboard";
+            case "ROLE_UNIVERSIDAD" -> "redirect:/university/panel";
             default             -> "redirect:/student/dashboard";
         };
     }

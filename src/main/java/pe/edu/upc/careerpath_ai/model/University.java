@@ -3,6 +3,9 @@ package pe.edu.upc.careerpath_ai.model;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.LinkedHashSet;
+import java.util.Set;
+
 @Entity
 @Table(name = "universities")
 @Data
@@ -27,6 +30,16 @@ public class University {
 
     @Column(length = 2000)
     private String faculties;
+
+    // US21: carreras que ofrece la universidad (base de las estadisticas de afinidad)
+    @ManyToMany(fetch = FetchType.EAGER)
+    @JoinTable(name = "university_careers",
+            joinColumns = @JoinColumn(name = "university_id"),
+            inverseJoinColumns = @JoinColumn(name = "career_id"))
+    @Builder.Default
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
+    private Set<Career> careers = new LinkedHashSet<>();
 
     // 🆕 Campo para guardar la descripción generada por la IA
     @Column(length = 1500)
