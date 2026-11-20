@@ -49,6 +49,11 @@ public class User {
     @JoinColumn(name = "institution_id")
     private Institution institution;
 
+    // US20: la cuenta con rol UNIVERSIDAD solo gestiona esta universidad
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "university_id")
+    private University university;
+
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
     private List<Favorite> favorites = new ArrayList<>();

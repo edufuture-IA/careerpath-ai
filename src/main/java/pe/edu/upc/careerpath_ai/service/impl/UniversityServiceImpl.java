@@ -3,7 +3,11 @@ package pe.edu.upc.careerpath_ai.service.impl;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import pe.edu.upc.careerpath_ai.model.University;
+import pe.edu.upc.careerpath_ai.model.Career;
+import pe.edu.upc.careerpath_ai.model.TestResult;
+import pe.edu.upc.careerpath_ai.repository.TestResultRepository;
 import pe.edu.upc.careerpath_ai.repository.UniversityRepository;
+import pe.edu.upc.careerpath_ai.util.AffinityStats;
 import pe.edu.upc.careerpath_ai.service.UniversityService;
 
 import java.util.List;
@@ -14,6 +18,7 @@ import java.util.Optional;
 public class UniversityServiceImpl implements UniversityService {
 
     private final UniversityRepository universityRepository;
+    private final TestResultRepository testResultRepository;
 
     @Override
     public List<University> findAll() { return universityRepository.findAll(); }
@@ -45,5 +50,26 @@ public class UniversityServiceImpl implements UniversityService {
     @Override
     public List<University> findByFacultiesContaining(String faculties) {
         return universityRepository.findByFacultiesContaining(faculties);
+    }
+
+    @Override
+    public University updateOwnInfo(Long id, String website, String city, String logoUrl,
+                                    String description, String faculties) {
+        University existing = universityRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Universidad no encontrada"));
+        existing.setWebsite(website);
+        existing.setCity(city);
+        existing.setLogoUrl(logoUrl);
+        existing.setDescription(description);
+        existing.setFaculties(faculties);
+        return universityRepository.save(existing);
+    }
+
+    @Override
+    public AffinityStats.Result affinityStats(University university) {
+        List<String> careerNames = university.getCareers().stream().map(Career::getName).toList();
+        List<String> recommended = testResultRepository.findAll().stream()
+                .map(TestResult::getRecommendedCareers).toList();
+        return AffinityStats.compute(careerNames, recommended);
     }
 }

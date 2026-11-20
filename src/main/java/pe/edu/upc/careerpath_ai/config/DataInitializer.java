@@ -28,6 +28,8 @@ public class DataInitializer implements CommandLineRunner {
         seedQuestions();
         seedCourses();
         seedUniversities();
+        linkUniversityCareers();
+        seedUniversityAccount();
         seedActivityLogs();   // 🆕
     }
 
@@ -233,6 +235,36 @@ public class DataInitializer implements CommandLineRunner {
                     .build());
 
             System.out.println("✅ 2 universidades creadas");
+        }
+    }
+
+    // US21: cada universidad ofrece las carreras de las areas de sus facultades
+    private void linkUniversityCareers() {
+        var careers = careerRepository.findAll();
+        for (University u : universityRepository.findAll()) {
+            if (!u.getCareers().isEmpty() || u.getFaculties() == null) continue;
+            var faculties = java.util.Arrays.stream(u.getFaculties().split(","))
+                    .map(String::trim).toList();
+            careers.stream()
+                    .filter(c -> c.getArea() != null && faculties.contains(c.getArea()))
+                    .forEach(c -> u.getCareers().add(c));
+            universityRepository.save(u);
+        }
+    }
+
+    // US20: cuenta demo de una universidad partner
+    private void seedUniversityAccount() {
+        if (userRepository.findByUsername("universidad@upc.edu.pe").isEmpty()) {
+            universityRepository.findAll().stream().findFirst().ifPresent(u -> {
+                userRepository.save(User.builder()
+                        .username("universidad@upc.edu.pe")
+                        .password(encoder.encode("universidad123"))
+                        .fullName("Universidad Demo")
+                        .role(Role.UNIVERSIDAD)
+                        .university(u)
+                        .build());
+                System.out.println("✅ UNIVERSIDAD creada: universidad@upc.edu.pe / universidad123");
+            });
         }
     }
 
