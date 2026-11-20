@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Comparar evaluaciones - CareerPath AI</title>
+    <link rel="stylesheet" th:href="@{/css/app.css}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<div th:replace="~{fragments/navbar :: navbar}"></div>
+
+<main class="app-container fade-in" style="max-width:900px;">
+
+    <div class="result-header text-center">
+        <h1>Comparación de evaluaciones</h1>
+        <p>
+            <span th:text="${#temporals.format(before.completedAt, 'dd/MM/yyyy')}"></span>
+            &rarr;
+            <span th:text="${#temporals.format(after.completedAt, 'dd/MM/yyyy')}"></span>
+        </p>
+    </div>
+
+    <div class="table-card" style="margin-top:1.5rem;">
+        <table class="table">
+            <thead>
+            <tr>
+                <th>Área</th>
+                <th>Antes</th>
+                <th>Después</th>
+                <th>Cambio</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="row : ${rows}">
+                <td th:text="${row.area}"></td>
+                <td th:text="${row.before} + ' pts'"></td>
+                <td th:text="${row.after} + ' pts'"></td>
+                <td>
+                    <strong th:if="${row.delta > 0}" style="color:#15803d;" th:text="'+' + ${row.delta}"></strong>
+                    <strong th:if="${row.delta < 0}" style="color:#b91c1c;" th:text="${row.delta}"></strong>
+                    <span th:if="${row.delta == 0}" style="color:#64748b;">Sin cambio</span>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="card card-soft" style="margin-top:1.5rem;">
+        <p>
+            Área predominante antes: <strong th:text="${before.topArea}"></strong>.
+            Después: <strong th:text="${after.topArea}"></strong>.
+        </p>
+    </div>
+
+    <div style="text-align:center; margin-top:2rem;">
+        <a th:href="@{/student/dashboard}" class="btn-secondary">Volver al Dashboard</a>
+    </div>
+
+</main>
+
+</body>
+</html>
