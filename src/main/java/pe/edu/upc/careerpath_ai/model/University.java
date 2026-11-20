@@ -40,4 +40,8 @@ public class University {
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
     private Set<Career> careers = new LinkedHashSet<>();
+
+    // 🆕 Campo para guardar la descripción generada por la IA
+    @Column(length = 1500)
+    private String aiAbout;
 }

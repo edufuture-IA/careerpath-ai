@@ -5,6 +5,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import pe.edu.upc.careerpath_ai.model.University;
+import pe.edu.upc.careerpath_ai.service.AIService;
 import pe.edu.upc.careerpath_ai.service.UniversityService;
 
 import java.util.List;
@@ -15,6 +16,7 @@ import java.util.List;
 public class UniversityController {
 
     private final UniversityService universityService;
+    private final AIService aiService;
 
     @GetMapping
     public String list(Model model) {
@@ -22,13 +24,34 @@ public class UniversityController {
         return "universities/list";
     }
 
-    // MÉTODO PARA VER EL DETALLE
     @GetMapping("/detail/{id}")
     public String detail(@PathVariable Long id, Model model) {
         University university = universityService.findById(id)
                 .orElseThrow(() -> new RuntimeException("Universidad no encontrada"));
         model.addAttribute("university", university);
         return "universities/detail";
+    }
+
+    // 🆕 Endpoint para HTMX
+    @GetMapping("/detail/{id}/ai-about")
+    public String getAiAbout(@PathVariable Long id, Model model) {
+        University uni = universityService.findById(id)
+                .orElseThrow(() -> new RuntimeException("Universidad no encontrada"));
+        
+        if (uni.getAiAbout() == null || uni.getAiAbout().isBlank()) {
+            String aiText = aiService.generateUniversityInfo(uni);
+            
+            // Solo guardar si no es un mensaje de error
+            if (aiText != null && !aiText.startsWith("⚠️")) {
+                uni.setAiAbout(aiText);
+                universityService.save(uni);
+            }
+            model.addAttribute("aiContent", aiText);
+        } else {
+            model.addAttribute("aiContent", uni.getAiAbout());
+        }
+        
+        return "fragments/ai-fragment :: response";
     }
 
     @GetMapping("/new")

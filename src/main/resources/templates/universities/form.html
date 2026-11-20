@@ -26,19 +26,19 @@
               th:object="${university}" method="post">
 
             <div class="form-group">
-                <label for="name">Nombre</label>
+                <label for="name">Nombre de la Institución</label>
                 <input type="text" id="name" th:field="*{name}"
                        class="form-control" required>
             </div>
 
             <div class="form-group">
-                <label for="website">Sitio web</label>
+                <label for="website">Sitio web oficial</label>
                 <input type="url" id="website" th:field="*{website}"
                        class="form-control" placeholder="https://...">
             </div>
 
             <div class="form-group">
-                <label for="city">Ciudad</label>
+                <label for="city">Ciudad / Ubicación</label>
                 <input type="text" id="city" th:field="*{city}"
                        class="form-control" placeholder="Ej: Lima">
             </div>
@@ -47,13 +47,6 @@
                 <label for="logoUrl">URL del logo (opcional)</label>
                 <input type="url" id="logoUrl" th:field="*{logoUrl}"
                        class="form-control" placeholder="https://...">
-            </div>
-
-            <div class="form-group">
-                <label for="description">Descripción</label>
-                <textarea id="description" th:field="*{description}"
-                          class="form-control" rows="4"
-                          placeholder="Describe brevemente la institución"></textarea>
             </div>
 
             <div class="form-group">
@@ -66,7 +59,9 @@
                 </p>
             </div>
 
-            <div style="display:flex; gap:1rem; margin-top:1.5rem;">
+            <!-- NOTA: Se eliminó el campo de Descripción porque se genera con IA -->
+
+            <div style="display:flex; gap:1rem; margin-top:2rem;">
                 <button type="submit" class="btn-primary"
                         th:text="${university.id} == null ? '💾 Guardar' : '💾 Guardar Cambios'"></button>
                 <a th:href="@{/universities}" class="btn-secondary">Cancelar</a>
