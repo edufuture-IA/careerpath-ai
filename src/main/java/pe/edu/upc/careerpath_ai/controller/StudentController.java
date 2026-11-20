@@ -11,6 +11,7 @@ import pe.edu.upc.careerpath_ai.service.AIService;
 import pe.edu.upc.careerpath_ai.service.ExportService;
 import pe.edu.upc.careerpath_ai.service.TestService;
 import pe.edu.upc.careerpath_ai.service.UserService;
+import pe.edu.upc.careerpath_ai.util.ScoreComparison;
 
 import java.io.IOException;
 
@@ -45,6 +46,31 @@ public class StudentController {
         model.addAttribute("areaScores", testService.parseAreaScores(result.getAreaScores()));
         model.addAttribute("recommended", testService.parseRecommendedCareers(result.getRecommendedCareers()));
         return "student/results";
+    }
+
+    // US11: comparar dos evaluaciones propias (la mas antigua queda como "antes")
+    @GetMapping("/compare")
+    public String compare(@RequestParam Long a, @RequestParam Long b,
+                          Model model, Authentication auth) {
+        if (a.equals(b)) {
+            return "redirect:/student/dashboard?compareError";
+        }
+        var first = testService.findById(a);
+        var second = testService.findById(b);
+        User currentUser = userService.findByUsername(auth.getName()).orElseThrow();
+        if (!first.getStudent().getId().equals(currentUser.getId())
+                || !second.getStudent().getId().equals(currentUser.getId())) {
+            return "redirect:/student/dashboard";
+        }
+        if (first.getCompletedAt().isAfter(second.getCompletedAt())) {
+            var tmp = first; first = second; second = tmp;
+        }
+        model.addAttribute("before", first);
+        model.addAttribute("after", second);
+        model.addAttribute("rows", ScoreComparison.compare(
+                testService.parseAreaScores(first.getAreaScores()),
+                testService.parseAreaScores(second.getAreaScores())));
+        return "student/compare";
     }
 
     // US10: el estudiante descarga su propio resultado en PDF
