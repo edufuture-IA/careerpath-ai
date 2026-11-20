@@ -7,6 +7,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -45,6 +46,11 @@ public class ApiExceptionHandler {
     @ExceptionHandler(AccessDeniedException.class)
     public ResponseEntity<ErrorResponse> accesoDenegado(AccessDeniedException ex, HttpServletRequest req) {
         return build(HttpStatus.FORBIDDEN, ex.getMessage(), req, null);
+    }
+
+    @ExceptionHandler(DisabledException.class)
+    public ResponseEntity<ErrorResponse> cuentaSuspendida(DisabledException ex, HttpServletRequest req) {
+        return build(HttpStatus.FORBIDDEN, "Cuenta suspendida. Contacta al administrador", req, null);
     }
 
     @ExceptionHandler(AuthenticationException.class)

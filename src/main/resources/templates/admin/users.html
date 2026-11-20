@@ -20,6 +20,16 @@
 
     <div th:if="${param.updated}" class="alert alert-success">✅ Usuario actualizado correctamente.</div>
     <div th:if="${param.deleted}" class="alert alert-success">🗑️ Usuario eliminado correctamente.</div>
+    <div th:if="${param.suspended}" class="alert alert-success">⏸️ Usuario suspendido. Ya no puede iniciar sesión.</div>
+    <div th:if="${param.reactivated}" class="alert alert-success">✅ Usuario reactivado.</div>
+    <div th:if="${param.forbidden}" class="alert alert-error">No se puede suspender a un administrador ni a tu propia cuenta.</div>
+
+    <form method="get" th:action="@{/admin/users}" style="display:flex; gap:.5rem; margin-bottom:1rem;">
+        <input type="text" name="q" th:value="${q}" placeholder="Buscar por nombre o correo"
+               style="flex:1; padding:.6rem .8rem; border:1px solid #cbd5e1; border-radius:8px;">
+        <button class="btn-primary" type="submit">Buscar</button>
+        <a th:if="${q != null and !q.isBlank()}" th:href="@{/admin/users}" class="btn-secondary">Limpiar</a>
+    </form>
 
     <div class="section-title">
         <h2>Estudiantes (<span th:text="${students.size()}">0</span>)</h2>
@@ -33,7 +43,7 @@
         <table class="table">
             <thead>
             <tr>
-                <th>ID</th><th>Nombre</th><th>Correo</th><th style="text-align:right;">Acciones</th>
+                <th>ID</th><th>Nombre</th><th>Correo</th><th>Estado</th><th style="text-align:right;">Acciones</th>
             </tr>
             </thead>
             <tbody>
@@ -41,11 +51,22 @@
                 <td th:text="${s.id}">-</td>
                 <td style="font-weight:600;" th:text="${s.fullName}">-</td>
                 <td th:text="${s.username}">-</td>
+                <td><span th:text="${s.enabled} ? 'Activo' : 'Suspendido'"
+                          th:style="${s.enabled} ? 'color:#15803d; font-weight:600;' : 'color:#b91c1c; font-weight:600;'">-</span></td>
                 <td style="text-align:right;">
                     <a th:href="@{/admin/users/edit/{id}(id=${s.id})}"
                        class="btn-secondary" style="padding:.4rem .8rem; font-size:.85rem;">
                         ✏️ Editar
                     </a>
+                    <form th:if="${s.enabled}" th:action="@{/admin/users/suspend/{id}(id=${s.id})}"
+                          method="post" style="display:inline"
+                          onsubmit="return confirm('¿Suspender usuario?');">
+                        <button class="btn-secondary" style="padding:.4rem .8rem; font-size:.85rem;">Suspender</button>
+                    </form>
+                    <form th:unless="${s.enabled}" th:action="@{/admin/users/reactivate/{id}(id=${s.id})}"
+                          method="post" style="display:inline">
+                        <button class="btn-secondary" style="padding:.4rem .8rem; font-size:.85rem;">Reactivar</button>
+                    </form>
                     <form th:action="@{/admin/users/delete/{id}(id=${s.id})}"
                           method="post" style="display:inline"
                           onsubmit="return confirm('¿Eliminar usuario?');">
@@ -68,18 +89,29 @@
     <div th:unless="${teachers.isEmpty()}" class="table-card">
         <table class="table">
             <thead>
-            <tr><th>ID</th><th>Nombre</th><th>Correo</th><th style="text-align:right;">Acciones</th></tr>
+            <tr><th>ID</th><th>Nombre</th><th>Correo</th><th>Estado</th><th style="text-align:right;">Acciones</th></tr>
             </thead>
             <tbody>
             <tr th:each="t : ${teachers}">
                 <td th:text="${t.id}">-</td>
                 <td style="font-weight:600;" th:text="${t.fullName}">-</td>
                 <td th:text="${t.username}">-</td>
+                <td><span th:text="${t.enabled} ? 'Activo' : 'Suspendido'"
+                          th:style="${t.enabled} ? 'color:#15803d; font-weight:600;' : 'color:#b91c1c; font-weight:600;'">-</span></td>
                 <td style="text-align:right;">
                     <a th:href="@{/admin/users/edit/{id}(id=${t.id})}"
                        class="btn-secondary" style="padding:.4rem .8rem; font-size:.85rem;">
                         ✏️ Editar
                     </a>
+                    <form th:if="${t.enabled}" th:action="@{/admin/users/suspend/{id}(id=${t.id})}"
+                          method="post" style="display:inline"
+                          onsubmit="return confirm('¿Suspender usuario?');">
+                        <button class="btn-secondary" style="padding:.4rem .8rem; font-size:.85rem;">Suspender</button>
+                    </form>
+                    <form th:unless="${t.enabled}" th:action="@{/admin/users/reactivate/{id}(id=${t.id})}"
+                          method="post" style="display:inline">
+                        <button class="btn-secondary" style="padding:.4rem .8rem; font-size:.85rem;">Reactivar</button>
+                    </form>
                     <form th:action="@{/admin/users/delete/{id}(id=${t.id})}"
                           method="post" style="display:inline"
                           onsubmit="return confirm('¿Eliminar usuario?');">

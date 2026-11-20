@@ -34,6 +34,11 @@ public class User {
     @Column(updatable = false)
     private LocalDateTime createdAt;
 
+    // US38: una cuenta suspendida no puede iniciar sesion
+    @Column(nullable = false, columnDefinition = "boolean default true")
+    @Builder.Default
+    private boolean enabled = true;
+
     @PrePersist
     void onCreate() {
         createdAt = LocalDateTime.now();
