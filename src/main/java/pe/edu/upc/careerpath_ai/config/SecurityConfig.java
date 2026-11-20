@@ -72,6 +72,7 @@ public class SecurityConfig {
                 .requestMatchers("/", "/login", "/register", "/contact",
                                  "/newsletter/**", "/share/**",
                                  "/institution/register",
+                                 "/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**",
                                  "/css/**", "/js/**", "/images/**").permitAll()
 
                 // -------- Roles --------
