@@ -38,46 +38,46 @@
 
     <!-- Métricas -->
     <div class="metrics-grid">
-        <div class="metric-card">
+        <a th:href="@{/admin/users}" class="metric-card" style="text-decoration:none; color:inherit; cursor:pointer;" title="Ver detalle">
             <div class="metric-icon">👥</div>
             <div class="metric-value" th:text="${totalStudents}">0</div>
             <div class="metric-label">Estudiantes</div>
-        </div>
-        <div class="metric-card">
+        </a>
+        <a th:href="@{/admin/users}" class="metric-card" style="text-decoration:none; color:inherit; cursor:pointer;" title="Ver detalle">
             <div class="metric-icon">👨‍🏫</div>
             <div class="metric-value" th:text="${totalTeachers}">0</div>
             <div class="metric-label">Docentes</div>
-        </div>
-        <div class="metric-card">
+        </a>
+        <a th:href="@{/careers}" class="metric-card" style="text-decoration:none; color:inherit; cursor:pointer;" title="Ver detalle">
             <div class="metric-icon">🎓</div>
             <div class="metric-value" th:text="${totalCareers}">0</div>
             <div class="metric-label">Carreras</div>
-        </div>
+        </a>
         <div class="metric-card">
             <div class="metric-icon">📋</div>
             <div class="metric-value" th:text="${totalTests}">0</div>
             <div class="metric-label">Tests Realizados</div>
         </div>
-        <div class="metric-card">
+        <a th:href="@{/admin/questions}" class="metric-card" style="text-decoration:none; color:inherit; cursor:pointer;" title="Ver detalle">
             <div class="metric-icon">❓</div>
             <div class="metric-value" th:text="${totalQuestions}">0</div>
             <div class="metric-label">Preguntas</div>
-        </div>
-        <div class="metric-card">
+        </a>
+        <a th:href="@{/admin/institutions}" class="metric-card" style="text-decoration:none; color:inherit; cursor:pointer;" title="Ver detalle">
             <div class="metric-icon">🏫</div>
             <div class="metric-value" th:text="${totalInstitutions}">0</div>
             <div class="metric-label">Colegios</div>
-        </div>
-        <div class="metric-card">
+        </a>
+        <a th:href="@{/admin/messages}" class="metric-card" style="text-decoration:none; color:inherit; cursor:pointer;" title="Ver detalle">
             <div class="metric-icon">📩</div>
             <div class="metric-value" th:text="${contactMessages}">0</div>
             <div class="metric-label">Mensajes B2B</div>
-        </div>
-        <div class="metric-card">
+        </a>
+        <a th:href="@{/admin/newsletter}" class="metric-card" style="text-decoration:none; color:inherit; cursor:pointer;" title="Ver detalle">
             <div class="metric-icon">📧</div>
             <div class="metric-value" th:text="${newsletterCount}">0</div>
             <div class="metric-label">Suscriptores</div>
-        </div>
+        </a>
     </div>
 
     <!-- Acciones rápidas -->
