@@ -43,8 +43,8 @@
                     th:text="${#temporals.format(log.timestamp, 'dd/MM HH:mm')}">-</td>
                 <td>
                     <span class="badge"
-                          th:classappend="${#strings.startsWith(log.action, 'DELETE') ? 'badge-orange' :
-                                           (#strings.startsWith(log.action, 'CREATE') ? 'badge-green' :
+                          th:classappend="${(#strings.startsWith(log.action, 'DELETE') or #strings.startsWith(log.action, 'SUSPEND')) ? 'badge-orange' :
+                                           ((#strings.startsWith(log.action, 'CREATE') or #strings.startsWith(log.action, 'REACTIVATE')) ? 'badge-green' :
                                            (#strings.startsWith(log.action, 'UPDATE') ? 'badge-blue' : 'badge-gray'))}"
                           th:text="${log.action}">-</span>
                 </td>
